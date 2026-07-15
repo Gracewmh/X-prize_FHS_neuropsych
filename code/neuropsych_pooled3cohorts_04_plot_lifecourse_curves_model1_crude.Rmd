@@ -1,0 +1,492 @@
+---
+title: "Pooled 3-Cohort Neuropsych: Class 1 Life-Course Plots"
+author: "Minghui (Grace) Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+<!--
+Pipeline step: 04 (run order: 00 -> 01 -> 02 -> 03 -> 04 -> 05 -> 06)
+Purpose: Generate Class 1 (age-as-time) life-course plots with observed score
+         background scatter and emmeans-based fitted curves.
+         Requires 03 to have run first (reads Class 2 y-axis range for alignment).
+Inputs:  - Class 1 fitted model RDS from 01 (../output/models/)
+         - Class 2 y-axis range table RDS from 03 (../output/tables/)
+         - neuropsych_pooled3_model_ready_xprize_with_covariates.csv (via setup_analysis_sample.R)
+Key steps: Load Class 2 y-axis table for aligned scaling; generate emmeans-based
+           prediction curves at ages 30–90 by 1; overlay observed scores colored
+           by sex and shaped by cohort.
+Core functions: make_curve_y_axis() (helpers.R), emmeans
+Outputs: Class 1 life-course PDFs (../output/plots/pooled3_04_lifecourse_plots_class1_crude.../)
+
+-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,   message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(janitor)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(broom.mixed)
+library(ggsci)
+
+source("R/_load_all.R")
+
+output_suffix <- format(Sys.Date(), "%m%d%Y")
+```
+
+## 0. Overview
+This script generates Class 1 life-course plots for the pooled 3-cohort neuropsychological models. It loads fitted model objects from RDS (saved by `01_fit_models.Rmd`) instead of refitting.
+
+**Run `neuropsych_pooled3cohorts_03_plot_lifecourse_curves_model2_crude.Rmd` (notebook 03) first.** This script reads the y-axis range table saved by the Class 2 script so that both sets of plots share the same y-axis scale per test.
+
+The Class 1 model uses age at measurement as the time scale. For each test, the figure overlays model-predicted cognitive score curves on a background scatter plot showing empirical data support.
+
+### 0.1 Choose analysis sample
+
+```{r}
+SAMPLE <- "2visit"
+```
+
+```{r}
+covariates <- NULL
+source("R/setup_analysis_sample.R")
+```
+
+```{r}
+model_tag <- if (SAMPLE == "2visit") "crude_2visit" else "crude"
+dir_tag   <- if (SAMPLE == "2visit") "_2visit" else ""
+
+plot_dir <- paste0(
+  "../output/plots/pooled3_04_lifecourse_plots_class1_crude", dir_tag
+)
+
+dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## 1. Load fitted Class 1 model objects
+
+```{r}
+model_rds_dir <- "../output/models"
+
+class1_fits <- readRDS(
+  file.path(
+    model_rds_dir,
+    "pooled3_crude_2visit_class1_fits.rds"
+  )
+)
+class1_fits_success <- class1_fits |>
+  filter(fit_success)
+
+cat(
+  "Loaded", nrow(class1_fits_success),
+  "successfully fitted Class 1 model strata\n"
+)
+
+class1_fits_success |>
+  select(
+    test,
+    sex_label,
+    n_obs,
+    n_subjects,
+    subject_random_slope_used
+  ) |>
+  knitr::kable()
+```
+## 2. Prepare test dictionary and Class 1 prediction grid
+
+```{r}
+test_dictionary_sheet <- make_pooled_test_dictionary( #  defined in R/workbook_writers.R
+  model_ready_pool 
+)
+
+class1_plot_ages <- seq(
+  30,
+  90,
+  by = 1
+)
+
+test_dictionary_sheet |>
+  knitr::kable()
+```
+
+
+## 3. Create Class 1 prediction curves
+
+```{r}
+
+make_class1_prediction_curve <- function(model_x, data_x) {
+  
+  emm_x <- emmeans::emmeans(
+    model_x,
+    specs = ~ cage_65,
+    at = list(
+      cage_65 = class1_plot_ages - 65,
+      birth_year_c = 0
+    ),
+    data = data_x,
+    lmer.df = "asymptotic"
+  )
+  
+  summary(emm_x) |>
+    as_tibble() |>
+    clean_names() |>
+    mutate(
+      age = cage_65 + 65
+    ) |>
+    select(
+      age,
+      predicted_score = emmean,
+      se,
+      everything()
+    )
+}
+```
+
+
+```{r}
+class1_prediction_curves <- class1_fits_success |>
+  mutate(
+    prediction_curve = map2(
+      model,
+      data,
+      ~ make_class1_prediction_curve(
+        model_x = .x,
+        data_x = .y
+      )
+    )
+  ) |>
+  select(
+    test,
+    sex_label,
+    prediction_curve
+  ) |>
+  unnest(
+    prediction_curve
+  ) |>
+  left_join(
+    test_dictionary_sheet |>
+      select(
+        test,
+        test_label,
+        xprize_subdomain,
+        range
+      ),
+    by = "test"
+  ) |>
+  arrange(
+    xprize_subdomain,
+    test,
+    sex_label,
+    age
+  )
+
+class1_prediction_curves |>
+  filter(
+    test == "lmi"
+  ) |>
+  head(20) |>
+  knitr::kable(digits = 2)
+```
+
+
+
+
+
+## 4. Class 1 · Age as Time life-course figures
+
+
+- The background layer shows observed cognitive scores by age at measurement, with cohort indicated by point shape and sex indicated by color. 
+- The foreground layer shows the fitted Class 1 model fixed-effect curves for women and men.
+
+
+### 4.1 Plot settings
+
+```{r}
+plot_age_min <- 30
+plot_age_max <- 90
+
+sex_colors <- c(
+  "Women" = "#CC4C8A",
+  "Men" = "#0E63AC"
+)
+
+cohort_shapes <- c(
+  "Original" = 17,
+  "Offspring" = 16,
+  "Gen3" = 15
+)
+
+background_point_alpha <- 0.18
+background_point_size <- 0.85
+
+curve_linewidth <- 1.4
+
+
+```
+
+
+
+```{r}
+# Load shared y-axis settings from codebook 03.
+
+class2_y_axis_table <- readRDS(
+  paste0(
+    "../output/tables/class2_y_axis_table_for_lifecourse_plots", dir_tag, ".rds"
+  )
+)
+
+class2_y_axis_table |>
+  knitr::kable(digits = 2)
+
+missing_axis_tests <- class1_prediction_curves |>
+  distinct(test) |>
+  anti_join(
+    class2_y_axis_table |>
+      distinct(test),
+    by = "test"
+  )
+
+if (nrow(missing_axis_tests) > 0) {
+  stop(
+    "Missing Class 2 y-axis range for: ",
+    paste(missing_axis_tests$test, collapse = ", ")
+  )
+}
+```
+
+
+
+
+
+
+### 4.2 Define plotting function
+
+```{r}
+plot_class1_age_support_one_test <- function(
+    scatter_data,
+    curve_data,
+    test_dictionary,
+    test_x,
+    y_axis_table = NULL
+) {
+  
+  scatter_x <- scatter_data |>
+    filter(
+      test == test_x,
+      complete_for_model,
+      age_at_measure >= plot_age_min,
+      age_at_measure <= plot_age_max
+    ) |>
+    drop_na(
+      age_at_measure,
+      score,
+      sex_label,
+      idtype_label
+    ) |>
+    mutate(
+      sex_label = factor(
+        sex_label,
+        levels = c("Women", "Men")
+      ),
+      idtype_label = factor(
+        idtype_label,
+        levels = c("Original", "Offspring", "Gen3")
+      )
+    )
+  
+  curve_x <- curve_data |>
+    filter(
+      test == test_x,
+      age >= plot_age_min,
+      age <= plot_age_max
+    ) |>
+    drop_na(
+      age,
+      predicted_score,
+      sex_label
+    ) |>
+    mutate(
+      sex_label = factor(
+        sex_label,
+        levels = c("Women", "Men")
+      )
+    )
+  
+  test_label_x <- test_dictionary |>
+    filter(test == test_x) |>
+    distinct(test_label) |>
+    pull(test_label) |>
+    first()
+
+  
+  if (is.null(y_axis_table)) {
+    
+    y_axis_x <- make_curve_y_axis(
+      curve_x = curve_x,
+      y_var = "predicted_score"
+    )
+    
+    y_limits_x <- y_axis_x$limits
+    y_breaks_x <- y_axis_x$breaks
+    
+  } else {
+    
+    y_axis_x <- y_axis_table |>
+      filter(test == test_x) |>
+      slice(1)
+    
+    y_limits_x <- c(
+      y_axis_x$y_min,
+      y_axis_x$y_max
+    )
+    
+    y_breaks_x <- y_axis_x$y_breaks[[1]]
+  }
+  
+  ggplot() +
+    geom_point(
+      data = scatter_x,
+      aes(
+        x = age_at_measure,
+        y = score,
+        color = sex_label,
+        shape = idtype_label
+      ),
+      alpha = background_point_alpha,
+      size = background_point_size
+    ) +
+    geom_ribbon(
+      data = curve_x,
+      aes(
+        x = age,
+        ymin = asymp_lcl,
+        ymax = asymp_ucl,
+        fill = sex_label
+      ),
+      alpha = 0.12,
+      color = NA
+    ) +
+    geom_line(
+      data = curve_x,
+      aes(
+        x = age,
+        y = predicted_score,
+        color = sex_label
+      ),
+      linewidth = curve_linewidth
+    ) +
+    scale_color_manual(
+      values = sex_colors,
+      name = "Sex"
+    ) +
+    scale_shape_manual(
+      values = cohort_shapes,
+      name = "Cohort"
+    ) +
+    scale_x_continuous(
+      limits = c(plot_age_min, plot_age_max),
+      breaks = seq(plot_age_min, plot_age_max, by = 10)
+    ) +
+    scale_y_continuous(
+      name = "Cognitive score",
+      breaks = y_breaks_x
+    ) +
+    coord_cartesian(
+      ylim = y_limits_x
+    ) +
+    labs(
+      title = paste0(
+        "Class 1 · Age as Time: ",
+        test_label_x
+      ),
+      subtitle = "Observed scores in background with fitted age-as-time curves by sex",
+      x = "Age at measurement"
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      legend.position = "bottom",
+      plot.title = element_text(size = 15, face = "bold"),
+      plot.subtitle = element_text(size = 11.5, color = "grey30"),
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10.5),
+      panel.grid.minor = element_blank()
+    )
+}
+```
+
+
+```{r, fig.width=11, fig.height=6}
+plot_class1_age_support_one_test(
+  scatter_data = model_ready_analysis,
+  curve_data = class1_prediction_curves,
+  test_dictionary = test_dictionary_sheet,
+  test_x = "lmd",
+  y_axis_table = class2_y_axis_table
+)
+```
+
+
+
+### 4.3 Save all Class 1 age-support figures
+
+```{r}
+class1_plot_test_order <- class1_prediction_curves |>
+  distinct(
+    xprize_subdomain,
+    test
+  ) |>
+  arrange(
+    xprize_subdomain,
+    test
+  )
+
+walk2(
+  class1_plot_test_order$xprize_subdomain,
+  class1_plot_test_order$test,
+  \(subdomain_x, test_x) {
+    
+    plot_x <- plot_class1_age_support_one_test(
+      scatter_data = model_ready_analysis,
+      curve_data = class1_prediction_curves,
+      test_dictionary = test_dictionary_sheet,
+      test_x = test_x,
+      y_axis_table = class2_y_axis_table
+    )
+    
+    subdomain_file_x <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    test_file_x <- test_x |>
+      str_to_lower() |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    ggsave(
+      filename = file.path(
+        plot_dir,
+        paste0(
+          "pooled3_class1_age_as_time_lifecourse_curve_",
+          subdomain_file_x,
+          "_",
+          test_file_x,
+          "_",
+          output_suffix,
+          ".pdf"
+        )
+      ),
+      plot = plot_x,
+      width = 11,
+      height = 6
+    )
+  }
+)
+```
+

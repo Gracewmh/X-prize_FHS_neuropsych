@@ -1,0 +1,428 @@
+---
+title: "Pooled 3-Cohort Neuropsych: Spontaneous Reversal (Class 1 Crude)"
+author: "Minghui (Grace) Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+<!--
+Notebook 06 applies the fitted Class 1 models to classify spontaneous reversal and produce the Class 1 Table 4 outputs and scatter plots.
+The classification procedure parallels notebook 05; only the model-estimated age contrast differs.
+-->
+
+# 0. Overview
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 12,
+  fig.height = 6
+)
+
+library(tidyverse)
+library(janitor)
+library(lme4)
+library(lmerTest)
+library(openxlsx)
+
+source("R/_load_all.R")
+
+output_suffix <- format(Sys.Date(), "%m%d%Y")
+```
+
+## Method
+
+For each test and sex stratum, observed change was calculated from baseline to the first follow-up and annualized by the elapsed follow-up time.
+
+Class 1 thresholds were evaluated at each participant's exact index age using fixed-effect predictions. For index age *A* and horizon *h*, the model contrast was:
+
+    Pred(age = A) - Pred(age = A - h)
+
+For each horizon:
+
+- expected decline: threshold = `-model_change`;
+- expected improvement: threshold = `2 × model_change`;
+- no expected change: threshold = 0.
+
+Observed and model-estimated changes were sign-reversed for Trails A and Trails B so that positive values consistently indicate improvement.
+
+Outputs include exclusive counts, cumulative counts, cumulative percentages, and participant-level scatter plots for baseline ages 50–90.
+
+
+# 1. Setup
+
+## 1.1 Output folders
+
+```{r choose_sample_and_dirs}
+SAMPLE <- "2visit"
+covariates <- NULL
+source("R/setup_analysis_sample.R")
+
+model_tag <- if (SAMPLE == "2visit") "crude_2visit" else "crude"
+dir_tag   <- if (SAMPLE == "2visit") "_2visit" else ""
+
+class1_fits_file <- paste0(
+  "pooled3_",
+  model_tag,
+  "_class1_fits.rds"
+)
+
+plot_dir     <- paste0(
+  "../output/plots/pooled3_06_spontaneous_reversal_class1_crude", dir_tag
+)
+table_dir    <- paste0(
+  "../output/tables/pooled3_06_spontaneous_reversal_class1_crude", dir_tag
+)
+dir.create(plot_dir,     recursive = TRUE, showWarnings = FALSE)
+dir.create(table_dir,    recursive = TRUE, showWarnings = FALSE)
+```
+
+## 1.2 Load saved Class 1 models
+
+```{r load_class1_models}
+model_rds_dir <- "../output/models"
+
+class1_fits <- readRDS(file.path(model_rds_dir, class1_fits_file))
+
+class1_fits_success <- class1_fits |>
+  filter(fit_success)
+
+cat(
+  "Loaded", nrow(class1_fits_success),
+  "successfully fitted Class 1 model strata\n"
+)
+
+class1_fits_success |>
+  select(test, sex_label, n_obs, n_subjects, subject_random_slope_used) |>
+  knitr::kable()
+```
+
+## 1.3 Test dictionary
+
+```{r test_dictionary}
+test_dictionary <- make_pooled_test_dictionary(model_ready_pool)
+test_dictionary |> knitr::kable()
+```
+
+## 1.4 Score direction
+
+Trails A and Trails B are scored as completion time (higher = worse). For
+these tests, both observed and model changes are sign-flipped so that
+positive always means improvement.
+
+```{r score_direction_qc}
+test_dictionary |>
+  mutate(
+    score_direction = if_else(test %in% higher_is_worse_tests, -1L, 1L),
+    direction_note  = if_else(
+      score_direction == -1L,
+      "Higher is worse (completion time); sign-flipped",
+      "Higher is better"
+    )
+  ) |>
+  select(test, test_label, score_direction, direction_note) |>
+  knitr::kable()
+```
+
+# 2. Observed change (baseline to first follow-up)
+
+Observed change was calculated from baseline to the first follow-up and annualized by the elapsed follow-up time. Records were restricted to index baseline ages 50–90 before calculating the model-based thresholds.
+
+## 2.1 Compute per stratum
+
+```{r compute_obs_change}
+class1_with_obs <- class1_fits_success |>
+  mutate(
+    obs = map(
+      data,
+      \(data_x) {
+        data_x |>
+          compute_obs_change() |>                # defined in R/spontaneous_reversal_functions.R.
+          restrict_reversal_baseline_age()       
+      }
+    )
+  )
+
+subject_obs <- class1_with_obs |>
+  select(test, sex_label, obs) |>
+  unnest(obs)
+
+cat(
+  "Observed change computed for",
+  n_distinct(subject_obs$dbgap_subject_id),
+  "unique subjects across",
+  n_distinct(subject_obs$test), "tests\n"
+)
+```
+
+## 2.2 Follow-up intervals
+
+```{r followup_summary}
+subject_obs |>
+  group_by(test, sex_label) |>
+  summarise(
+    n = n(),
+    median_fu_years = median(followup_years),
+    iqr_lo = quantile(followup_years, 0.25),
+    iqr_hi = quantile(followup_years, 0.75),
+    max_fu_years = max(followup_years),
+    .groups = "drop"
+  ) |>
+  knitr::kable(digits = 1)
+```
+
+# 3. Model-estimated changes (Class 1, exact age)
+
+Class 1 model changes were evaluated directly from the fitted fixed effects at each participant's exact index age. The backward-age contrast follows the definition in the Method section.
+
+## 3.1 Compute per stratum
+
+```{r compute_model_changes}
+class1_with_mc <- class1_with_obs |>
+  mutate(
+    model_changes = pmap(
+      list(model, obs),
+      function(model_x, obs_x) {
+        compute_model_change_class1(model_x, unique(obs_x$baseline_age))
+      }
+    )
+  )
+```
+
+# 4. Reversal classification
+
+Observed changes were joined to the exact-age Class 1 contrasts before applying the horizon-specific reversal thresholds.
+
+## 4.1 Classify
+
+```{r classify_reversal}
+reversal_subject_level <- class1_with_mc |>
+  mutate(
+    classified = pmap(
+      list(obs, model_changes, test, sex_label),
+      function(obs_x, mc_x, test_x, sex_x) {
+        obs_x |>
+          left_join(mc_x, by = "baseline_age") |>
+          mutate(test = test_x, sex_label = sex_x) |>
+          classify_reversal()
+      }
+    )
+  ) |>
+  select(classified) |>
+  unnest(classified) |>
+  restrict_reversal_baseline_age()
+
+cat(
+  "Classified", nrow(reversal_subject_level),
+  "participant-test combinations (baseline age 50-90) across",
+  n_distinct(reversal_subject_level$test), "tests\n"
+)
+```
+
+## 4.2 Reversal summary
+
+```{r reversal_summary}
+reversal_subject_level |>
+  group_by(test, sex_label) |>
+  summarise(
+    n = n(),
+    n_any_rev = sum(max_reversal_year > 0),
+    pct_any = 100 * mean(max_reversal_year > 0),
+    n_rev_5  = sum(reversal_5yr),
+    n_rev_10 = sum(reversal_10yr),
+    n_rev_15 = sum(reversal_15yr),
+    n_rev_20 = sum(reversal_20yr),
+    .groups = "drop"
+  ) |>
+  knitr::kable(digits = 1)
+```
+
+# 5. Table 4 outputs
+
+Participant-level spontaneous reversal classifications were summarized by baseline-age group in three formats:
+
+- **Exclusive count:** maximum qualifying horizon;
+- **Cumulative count:** maximum qualifying horizon at or above each column;
+- **Cumulative percentage:** cumulative count divided by N.
+
+## 5.1 Table 4 (exclusive form)
+
+```{r table4_exclusive}
+table4_exclusive <- make_table4(
+  reversal_subject_level, test_dictionary, form = "exclusive"
+)
+
+table4_exclusive |>
+  filter(test == "lmd") |>
+  select(-xprize_subdomain, -test, -test_label, -age_bin) |>
+  knitr::kable()
+```
+
+```{r table4_exclusive_save}
+
+# write_table4_workbook() is defined in workbook_writers.R
+# make_output_name() is defined in helpers.R.
+
+write_csv(
+  table4_exclusive,
+  file.path(
+    table_dir,
+    make_output_name(
+      paste0("xprize_pooled3_", model_tag, "_class1_table4_exclusive"),
+      "csv"
+    )
+  )
+)
+
+table4_excl_xlsx <- file.path(
+  table_dir,
+  make_output_name(
+    paste0("xprize_pooled3_", model_tag, "_class1_table4_exclusive"),
+    "xlsx"
+  )
+)
+write_table4_workbook(table4_exclusive, table4_excl_xlsx, form = "exclusive")
+```
+
+## 5.2 Table 4 (cumulative form)
+
+```{r table4_cumulative}
+table4_cumulative <- make_table4(
+  reversal_subject_level, test_dictionary, form = "cumulative"
+)
+
+# Preview one test.
+table4_cumulative |>
+  filter(test == "lmd") |>
+  select(-xprize_subdomain, -test, -test_label, -age_bin) |>
+  knitr::kable()
+```
+
+
+```{r table4_cumulative_save}
+write_csv(
+  table4_cumulative,
+  file.path(
+    table_dir,
+    make_output_name(
+      paste0("xprize_pooled3_", model_tag, "_class1_table4_cumulative"),
+      "csv"
+    )
+  )
+)
+
+table4_cumul_xlsx <- file.path(
+  table_dir,
+  make_output_name(
+    paste0("xprize_pooled3_", model_tag, "_class1_table4_cumulative"),
+    "xlsx"
+  )
+)
+write_table4_workbook(table4_cumulative, table4_cumul_xlsx, form = "cumulative")
+```
+
+## 5.3 Table 4 (cumulative percentage)
+
+```{r table4_cumulative_pct}
+table4_cumulative_pct <- make_table4(
+  reversal_subject_level, test_dictionary, form = "cumulative_pct"
+)
+
+# Preview one test (values are proportions of N).
+table4_cumulative_pct |>
+  filter(test == "lmd") |>
+  select(-xprize_subdomain, -test, -test_label, -age_bin) |>
+  knitr::kable(digits = 3)
+```
+
+```{r table4_cumulative_pct_save}
+write_csv(
+  table4_cumulative_pct,
+  file.path(
+    table_dir,
+    make_output_name(
+      paste0("xprize_pooled3_", model_tag, "_class1_table4_cumulative_pct"),
+      "csv"
+    )
+  )
+)
+
+table4_cumul_pct_xlsx <- file.path(
+  table_dir,
+  make_output_name(
+    paste0("xprize_pooled3_", model_tag, "_class1_table4_cumulative_pct"),
+    "xlsx"
+  )
+)
+write_table4_workbook(
+  table4_cumulative_pct, table4_cumul_pct_xlsx, form = "cumulative_pct"
+)
+```
+
+# 6. Scatter plots
+
+Scatter plots display the observations underlying Table 4. The x-axis shows index baseline age, and the y-axis shows direction-adjusted annualized observed change. Points are colored by maximum qualifying reversal horizon and panels are separated by sex.
+
+
+## 6.1 Check one test
+
+```{r scatter_check, fig.width=12, fig.height=6}
+plot_reversal_scatter(reversal_subject_level, test_dictionary, "lmd")
+```
+
+## 6.2 Save all tests
+
+```{r scatter_save_all}
+scatter_order <- reversal_subject_level |>
+  distinct(test) |>
+  left_join(
+    test_dictionary |> select(test, xprize_subdomain),
+    by = "test"
+  ) |>
+  arrange(xprize_subdomain, test)
+
+walk2(
+  scatter_order$xprize_subdomain,
+  scatter_order$test,
+  function(subdomain_x, test_x) {
+
+    p <- plot_reversal_scatter(
+      reversal_subject_level, test_dictionary, test_x
+    )
+
+    subdomain_file <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+
+    test_file <- test_x |>
+      str_to_lower() |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+
+    ggsave(
+      filename = file.path(
+        plot_dir,
+        paste0(
+          "class1_reversal_scatter_",
+          subdomain_file, "_", test_file,
+          "_", output_suffix, ".pdf"
+        )
+      ),
+      plot = p,
+      width = 12,
+      height = 6
+    )
+  }
+)
+
+cat("Scatter plots saved to:", plot_dir, "\n")
+```
+
+
+

@@ -1,0 +1,707 @@
+---
+title: "Pooled 3-Cohort Neuropsych: Class 2 Life-Course Plots"
+author: "Minghui (Grace) Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+<!--
+Pipeline step: 03 (run order: 00 -> 01 -> 02 -> 03 -> 04 -> 05 -> 06)
+Purpose: Generate Class 2 (follow-up-as-time) life-course trajectory plots with
+         baseline-age-anchored fitted curves. Must run BEFORE 04 — saves a y-axis
+         range table that 04 reads for aligned scaling across model classes.
+Inputs:  - Class 2 fitted model RDS from 01 (../output/models/)
+         - neuropsych_pooled3_model_ready_xprize_with_covariates.csv (via setup_analysis_sample.R)
+Key steps: Generate fixed-effect predictions at baseline ages 30–85 by 5 over
+           follow-up grid 0–20yr; compute curve-based y-axis ranges; plot with
+           dual y-axis (score + follow-up) and viridis color for baseline age.
+Core functions: make_curve_y_axis() (helpers.R), make_pooled_test_dictionary() (workbook_writers.R)
+Outputs: - Class 2 life-course PDFs (../output/plots/pooled3_03_lifecourse_plots_class2_crude.../)
+         - class2_y_axis_table RDS (../output/tables/ — used by 04)
+Downstream: 04 reads the y-axis range table for aligned scaling
+
+-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,   message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+
+source("R/_load_all.R")
+
+output_suffix <- format(Sys.Date(), "%m%d%Y")
+
+```
+
+## 0. Overview
+This script generates Class 2 life-course plots for the pooled 3-cohort neuropsychological models. It loads fitted model objects from RDS (saved by `01_fit_models.Rmd`) instead of refitting.
+
+**Run this script before `neuropsych_pooled3cohorts_04_plot_lifecourse_curves_model1_crude.Rmd`.** The resulting y-axis limits are reused in 04 for the Class 1 plots.
+
+Class 2 models change as a function of follow-up time. For plotting, predictions are generated from selected baseline ages and displayed against attained age.
+
+## 0.1 Choose analysis sample
+
+```{r}
+SAMPLE <- "2visit"
+```
+
+```{r}
+covariates <- NULL
+source("R/setup_analysis_sample.R")
+```
+
+## 1. Setup and data import
+
+### 1.1 Define output folders
+
+```{r}
+model_tag <- if (SAMPLE == "2visit") "crude_2visit" else "crude"
+dir_tag   <- if (SAMPLE == "2visit") "_2visit" else ""
+
+plot_dir <- paste0(
+  "../output/plots/pooled3_03_lifecourse_plots_class2_crude", dir_tag
+)
+
+class2_lifecourse_dir <- file.path(
+  plot_dir,
+  "baseline_age_anchored_trajectories"
+)
+
+dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(class2_lifecourse_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## 2. Load fitted Class 2 model objects
+
+```{r}
+model_rds_dir <- "../output/models"
+
+class2_fits <- readRDS(
+  file.path(
+  model_rds_dir,
+  paste0("pooled3_", model_tag, "_class2_fits.rds")
+)
+)
+
+class2_fits_success <- class2_fits |>
+  filter(fit_success)
+
+cat(
+  "Loaded", nrow(class2_fits_success),
+  "successfully fitted Class 2 model strata\n"
+)
+
+class2_fits_success |>
+  select(
+    test,
+    sex_label,
+    n_obs,
+    n_subjects,
+    subject_random_slope_used
+  ) |>
+  knitr::kable()
+```
+
+
+
+## 3. Plotting inputs
+
+### 3.1 Create test dictionary
+
+```{r}
+test_dictionary_sheet <- make_pooled_test_dictionary( # defined in R/workbook_writers.R
+  model_ready_pool
+)
+
+test_dictionary_sheet |>
+  knitr::kable()
+
+```
+### 3.2 Define plot settings
+
+
+```{r}
+plot_age_min <- 30
+plot_age_max <- 90
+
+
+cohort_shapes <- c(
+  "Original" = 17,
+  "Offspring" = 16,
+  "Gen3" = 15
+)
+
+```
+
+
+### 3.3 Prepare baseline-age × maximum-follow-up background layer
+
+```{r}
+baseline_followup_background <- model_ready_analysis |>
+  drop_na(
+    test,
+    sex_label,
+    idtype_label,
+    baseline_age,
+    t_followup,
+    score
+  ) |>
+  group_by(
+    test,
+    sex_label,
+    idtype_label,
+    dbgap_subject_id,
+    baseline_age
+  ) |>
+  summarise(
+    max_followup = max(t_followup, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    sex_label = factor(
+      sex_label,
+      levels = c("Women", "Men")
+    ),
+    idtype_label = factor(
+      idtype_label,
+      levels = c("Original", "Offspring", "Gen3")
+    )
+  ) |>
+  filter(
+    baseline_age >= plot_age_min,
+    baseline_age <= plot_age_max
+  ) |>
+  left_join(
+    test_dictionary_sheet |>
+      select(
+        test,
+        test_label,
+        xprize_subdomain,
+        range
+      ),
+    by = "test"
+  )
+
+baseline_followup_background |>
+  count(
+    test,
+    sex_label,
+    idtype_label
+  ) |>
+  arrange(
+    test,
+    sex_label,
+    idtype_label
+  ) |>
+  knitr::kable()
+```
+
+### 3.4 Check observed baseline-age and follow-up support by test
+
+```{r}
+
+observed_score_range_by_test <- baseline_followup_background |>
+  group_by(
+    test,
+    test_label,
+    xprize_subdomain,
+    sex_label
+  ) |>
+  summarise(
+    n_subjects = n_distinct(dbgap_subject_id),
+    min_baseline_age = min(baseline_age, na.rm = TRUE),
+    max_baseline_age = max(baseline_age, na.rm = TRUE),
+    min_max_followup = min(max_followup, na.rm = TRUE),
+    max_max_followup = max(max_followup, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(
+    xprize_subdomain,
+    test,
+    sex_label
+  )
+
+observed_score_range_by_test |>
+  knitr::kable(digits = 2)
+```
+
+
+## 4. Class 2 · Follow-up as Time life-course curves
+
+### 4.1 Define baseline-age anchors and follow-up grid
+
+```{r}
+
+baseline_age_anchors <- seq(
+  30,
+  85,
+  by = 5
+)
+
+followup_plot_grid <- seq(
+  0,
+  20,
+  by = 0.25
+)
+
+followup_axis_min <- 0
+followup_axis_max <- max(followup_plot_grid)
+```
+
+### 4.2 Generate baseline-age anchored predictions
+
+```{r}
+# Inputs:
+#   model_x = one fitted Class 2 model object for one test × sex stratum
+#   data_x  = the analysis data used to fit that model
+#
+# Output:
+#   A prediction grid with one row per baseline-age anchor × follow-up time,
+#   including attained age and the model-predicted cognitive score.
+make_class2_anchor_predictions <- function(
+    model_x,
+    data_x
+) {
+
+  #  Prediction grid
+  #   - selected baseline-age anchors, e.g., 30, 35, ..., 85
+  #   - follow-up times, e.g., 0, 0.25, ..., 20 years
+  prediction_grid <- expand_grid(
+    baseline_age_anchor = baseline_age_anchors,
+    t_followup = followup_plot_grid
+  ) |>
+    mutate(
+      # baseline_age is the model variable; baseline_age_anchor is kept for plotting.
+      baseline_age = baseline_age_anchor,
+       # Plot Class 2 follow-up trajectories on the attained-age scale.
+      attained_age = baseline_age + t_followup,
+      
+      # Hold birth year fixed at the centered reference value.
+      birth_year_c = 0,
+      
+      # Required grouping variables for predict(); random effects are excluded below.
+      idtype_label = factor(
+        "Offspring",
+        levels = c("Original", "Offspring", "Gen3")
+      ),
+      dbgap_subject_id = data_x$dbgap_subject_id[1]
+    ) |>
+    filter(
+      attained_age >= plot_age_min,
+      attained_age <= plot_age_max
+    )
+  
+# Fixed-effect predictions only; no subject- or cohort-specific random effects.
+  prediction_grid$predicted_score <- as.numeric(
+    predict(
+      model_x,
+      newdata = prediction_grid,
+      re.form = NA,
+      allow.new.levels = TRUE
+    )
+  )
+  
+  prediction_grid |>
+    transmute(
+      baseline_age_anchor,
+      t_followup,
+      attained_age,
+      birth_year_c,
+      predicted_score
+    )
+}
+```
+
+
+
+### 4.3 Apply prediction function to all Class 2 models
+
+```{r}
+class2_anchor_trajectory_predictions <- class2_fits_success |>
+  mutate(
+    anchor_predictions = map2(
+      model,
+      data,
+      ~ make_class2_anchor_predictions( # defined in 4.2
+        model_x = .x,
+        data_x = .y
+      )
+    )
+  ) |>
+  select(
+    test,
+    sex_label,
+    anchor_predictions
+  ) |>
+  unnest(
+    anchor_predictions
+  ) |>
+  mutate(
+    sex_label = factor(
+      sex_label,
+      levels = c("Women", "Men")
+    )
+  ) |>
+  left_join(
+    test_dictionary_sheet |>
+      select(
+        test,
+        test_label,
+        xprize_subdomain,
+        range
+      ),
+    by = "test"
+  ) |>
+  arrange(
+    xprize_subdomain,
+    test,
+    sex_label,
+    baseline_age_anchor,
+    t_followup
+  )
+```
+
+```{r}
+class2_anchor_trajectory_predictions |>
+  filter(
+    test == "lmi"
+  ) |>
+  summarise(
+    n_rows = n(),
+    min_baseline_age_anchor = min(baseline_age_anchor),
+    max_baseline_age_anchor = max(baseline_age_anchor),
+    min_attained_age = min(attained_age),
+    max_attained_age = max(attained_age),
+    min_predicted_score = min(predicted_score, na.rm = TRUE),
+    max_predicted_score = max(predicted_score, na.rm = TRUE)
+  ) |>
+  knitr::kable(digits = 2)
+```
+
+
+### 4.4 Create curve-based Y-axis ranges
+
+```{r}
+class2_y_axis_table <- class2_anchor_trajectory_predictions |>
+  group_by(test) |>
+  summarise(
+    y_axis = list(
+      make_curve_y_axis( # defined in R/helpers.R
+        curve_x = cur_data(),
+        y_var = "predicted_score"
+      )
+    ),
+    .groups = "drop"
+  ) |>
+  mutate(
+    y_min = map_dbl(y_axis, ~ .x$limits[1]),
+    y_max = map_dbl(y_axis, ~ .x$limits[2]),
+    y_breaks = map(y_axis, ~ .x$breaks)
+  ) |>
+  select(
+    test,
+    y_min,
+    y_max,
+    y_breaks
+  )
+
+class2_y_axis_table |>
+  knitr::kable(digits = 2)
+```
+
+
+
+
+
+
+### 4.5 Quick check trajectory counts for one test
+
+```{r}
+class2_anchor_trajectory_predictions |>
+  filter(
+    test == "lmi"
+  ) |>
+  count(
+    sex_label,
+    baseline_age_anchor
+  ) |>
+  arrange(
+    sex_label,
+    baseline_age_anchor
+  ) |>
+  knitr::kable()
+
+```
+
+
+
+
+
+### 4.6 Define Class 2 plotting function
+
+```{r}
+# Background points show baseline age × maximum follow-up on the right axis.
+# Foreground curves show fixed-effect predicted scores by baseline-age anchor.
+
+plot_class2_baseline_age_prediction_one_test <- function(
+    background_data,
+    prediction_data,
+    test_dictionary,
+    test_x,
+    y_axis_table = NULL
+) {
+  
+  # Get the display label for the current test.
+  test_label_x <- test_dictionary |>
+    filter(test == test_x) |>
+    distinct(test_label) |>
+    pull(test_label) |>
+    first()
+  
+  # Use shared y-axis limits when supplied.
+  if (is.null(y_axis_table)) {
+    
+    curve_x <- prediction_data |>
+      filter(test == test_x)
+    
+    # make_curve_y_axis() is defined in R/helpers.R
+    y_axis_x <- make_curve_y_axis(
+      curve_x = curve_x,
+      y_var = "predicted_score"
+    )
+    
+    y_limits_x <- y_axis_x$limits
+    y_breaks_x <- y_axis_x$breaks
+    
+  } else {
+    
+    y_axis_x <- y_axis_table |>
+      filter(test == test_x) |>
+      slice(1)
+    
+    y_limits_x <- c(
+      y_axis_x$y_min,
+      y_axis_x$y_max
+    )
+    
+    y_breaks_x <- y_axis_x$y_breaks[[1]]
+  }
+  
+  # Map maximum follow-up years onto the cognitive-score y-axis so the background support points can be drawn in the same panel.
+  score_min <- y_limits_x[1]
+  score_max <- y_limits_x[2]
+  
+  followup_to_score <- function(y) {
+    score_min +
+      (y - followup_axis_min) /
+      (followup_axis_max - followup_axis_min) *
+      (score_max - score_min)
+  }
+  
+  # Inverse transform used for the right-side secondary axis.
+  score_to_followup <- function(y) {
+    followup_axis_min +
+      (y - score_min) /
+      (score_max - score_min) *
+      (followup_axis_max - followup_axis_min)
+  }
+  
+  ggplot() +
+    # Background layer: Observed follow-up support
+    geom_point(
+      data = background_data |>
+        filter(
+          test == test_x
+        ),
+      aes(
+        x = baseline_age,
+        y = followup_to_score(max_followup),
+        shape = idtype_label
+      ),
+      color = "grey55",
+      alpha = 0.2,
+      size = 0.8
+    ) +
+    
+    # Foreground layer: Fixed-effect trajectories
+    geom_line(
+      data = prediction_data |>
+        filter(
+          test == test_x
+        ),
+      aes(
+        x = attained_age,
+        y = predicted_score,
+        group = baseline_age_anchor,
+        color = baseline_age_anchor
+      ),
+      linewidth = 0.95,
+      alpha = 0.95
+    ) +
+    facet_wrap(
+      vars(sex_label),
+      nrow = 1
+    ) +
+    scale_color_viridis_c(
+      name = "Baseline age",
+      breaks = seq(
+        min(baseline_age_anchors),
+        max(baseline_age_anchors),
+        by = 10
+      ),
+      limits = range(baseline_age_anchors)
+    ) +
+    scale_shape_manual(
+      values = cohort_shapes,
+      name = "Cohort"
+    ) +
+    scale_x_continuous(
+      limits = c(plot_age_min, plot_age_max),
+      breaks = seq(plot_age_min, plot_age_max, by = 10)
+    ) +
+    scale_y_continuous(
+      name = "Cognitive score",
+      breaks = y_breaks_x,
+      sec.axis = sec_axis(
+        trans = score_to_followup,
+        name = "Maximum follow-up, years",
+        breaks = seq(
+          followup_axis_min,
+          followup_axis_max,
+          by = 5
+        )
+      )
+    ) +
+    coord_cartesian(
+      ylim = y_limits_x
+    ) +
+    labs(
+      title = paste0(
+        "Class 2 · Follow-up as Time: ",
+        test_label_x
+      ),
+      subtitle = "Background: maximum follow-up per subject (right axis); curves: fitted trajectories by baseline age",
+      x = "Age at measurement"
+    ) +
+    guides(
+      color = guide_colorbar(
+        order = 1,
+        title.position = "top",
+        barwidth = unit(3.8, "cm"),
+        barheight = unit(0.35, "cm")
+      ),
+      shape = guide_legend(
+        order = 2,
+        override.aes = list(
+          color = "grey40",
+          alpha = 0.7,
+          size = 2
+        )
+      )
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      legend.title = element_text(size = 10.5),
+      legend.text = element_text(size = 9.5),
+      plot.title = element_text(size = 15, face = "bold"),
+      plot.subtitle = element_text(size = 11.5, color = "grey30"),
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10.5),
+      strip.background = element_rect(fill = "grey90"),
+      strip.text = element_text(size = 11),
+      panel.grid.minor = element_blank(),
+      panel.spacing.x = unit(0.8, "lines")
+    )
+}
+```
+
+
+
+### 4.7 Check one Class 2 life-course figure
+```{r}
+plot_class2_baseline_age_prediction_one_test(
+  background_data = baseline_followup_background,
+  prediction_data = class2_anchor_trajectory_predictions,
+  test_dictionary = test_dictionary_sheet,
+  test_x = "lmd",
+  y_axis_table = class2_y_axis_table
+)
+```
+
+### 4.8 Save all Class 2 plots
+
+```{r}
+class2_plot_order <- class2_anchor_trajectory_predictions |>
+  distinct(
+    xprize_subdomain,
+    test
+  ) |>
+  arrange(
+    xprize_subdomain,
+    test
+  )
+
+walk2(
+  class2_plot_order$xprize_subdomain,
+  class2_plot_order$test,
+  \(subdomain_x, test_x) {
+    
+    plot_x <- plot_class2_baseline_age_prediction_one_test(
+      background_data = baseline_followup_background,
+      prediction_data = class2_anchor_trajectory_predictions,
+      test_dictionary = test_dictionary_sheet,
+      test_x = test_x,
+      y_axis_table = class2_y_axis_table
+    )
+    
+    subdomain_file_x <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    test_file_x <- test_x |>
+      str_to_lower() |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    ggsave(
+      filename = file.path(
+        class2_lifecourse_dir,
+        paste0(
+          "pooled3_class2_followup_as_time_",
+          subdomain_file_x,
+          "_",
+          test_file_x,
+          "_",
+          output_suffix,
+          ".pdf"
+        )
+      ),
+      plot = plot_x,
+      width = 12,
+      height = 6
+    )
+  }
+)
+```
+
+
+## 5. Output y-axis range
+```{r}
+class2_y_axis_table_path <- paste0(
+  "../output/tables/class2_y_axis_table_for_lifecourse_plots", dir_tag, ".rds"
+)
+
+saveRDS(
+  class2_y_axis_table,
+  class2_y_axis_table_path
+)
+```

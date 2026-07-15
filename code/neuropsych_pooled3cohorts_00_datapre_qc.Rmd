@@ -1,0 +1,1828 @@
+---
+title: "Pooled 3-Cohort Neuropsych Data Preparation and QC"
+author: "Minghui (Grace) Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+<!--
+Pipeline step: 00 (run order: 00 -> 01 -> 02 -> 03 -> 04 -> 05 -> 06 -> 07)
+
+Purpose:
+Import the model-ready all-tests CSV, keep the 3 pooled Framingham cohorts
+(Original, Offspring, Gen3), reconstruct the calendar-aligned birth year variable,
+center covariates, and QC the pooled sample before model fitting.
+
+Inputs:
+../data/neuropsych_alltests_model_ready_xprize_with_covariates_05212026.csv
+
+Expected columns used by this pipeline:
+
+- `dbgap_subject_id`: ID
+- `idtype`: cohort code
+- `idtype_label`: cohort
+- `sex_label`: sex
+- `test`: test code
+- `score`: score
+- `age`: visit age
+- `np_date`: visit date
+- `baseline_age`: baseline age
+- `t_followup`: follow-up years
+- `cage_65`: age centered at 65
+
+Key steps:
+- Keep idtype 0/1/3 only.
+- Set subject ID, cohort, and sex labels.
+- Reconstruct birth year using cohort-specific NP anchor years.
+- Center birth_year_c at the pooled median.
+- Summarize sample size, visit counts, follow-up time, age coverage, and test-level missingness.
+
+Core functions:
+R/helpers.R
+
+Outputs:
+- neuropsych_pooled3_model_ready_xprize_with_covariates.csv
+- QC tables under ../output/tables/pooled3_00_qc/
+- QC plots under ../output/plots/pooled3_00_qc/
+
+Downstream:
+01 reads the corrected pooled CSV via setup_analysis_sample.R.
+
+Downstream scripts 01–06 mainly require:
+
+- `dbgap_subject_id`: ID
+- `idtype`: cohort code
+- `idtype_label`: cohort
+- `sex_label`: sex
+- `test`: test code
+- `score`: score
+- `age`: visit age
+- `baseline_age`: baseline age
+- `t_followup`: follow-up years
+- `cage_65`: age centered at 65
+- `birth_year_c`: centered birth year
+
+Notes for release:
+QC outputs are mainly for internal review.
+-->
+
+
+In this series of codebooks, we analyze pooled neuropsychological data from the Original, Offspring, and Gen3 cohorts of the Framingham Study.
+
+Earlier cohort-specific analyses showed that the three cohorts had reasonable sample sizes and covered complementary age ranges. We therefore pooled the cohorts to fit integrated models while retaining cohort-level structure in the models. Because the cohorts represent different birth periods, centered year of birth was included as a covariate.
+
+Part 1 calculates centered year of birth and builds the analysis-ready dataset. If this variable is already available in another dataset, Part 1 can be skipped.
+
+Part 2 conducts pre-modeling QC and summarizes the pooled data structure, including sample size, visit distribution, follow-up time, age coverage, and test-level missingness.
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(janitor)
+library(ggsci)
+library(ggplot2)
+
+output_suffix <- format(Sys.Date(), "%m%d%Y")
+
+qc_table_dir <- "../output/tables/pooled3_00_qc"
+qc_plots_dir <- "../output/plots/pooled3_00_qc"
+
+dir.create(qc_table_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(qc_plots_dir, recursive = TRUE, showWarnings = FALSE)
+
+source("R/helpers.R")
+```
+
+## 1. Import model-ready data
+
+```{r}
+# filter 
+# idtypes 0 = Original cohort
+# idtypes 1 = Offspring cohort
+# idtypes 3 = Gen3 cohort
+keep_idtypes <- c(0, 1, 3)
+
+model_ready_pool <- read_csv(
+  "../data/neuropsych_alltests_model_ready_xprize_with_covariates_05212026.csv",
+  show_col_types = FALSE
+) |>
+  mutate(
+    dbgap_subject_id = factor(dbgap_subject_id),
+    idtype_label = factor(idtype_label),
+    sex_label = factor(
+      sex_label,
+      levels = c("Women", "Men")
+    )
+  ) |>
+  filter(
+    idtype %in% keep_idtypes
+  )
+```
+
+```{r}
+model_ready_pool |>
+  count(test, idtype, idtype_label) |>
+  arrange(test, idtype) |>
+  knitr::kable()
+```
+
+
+### 1.1 Reconstruct calendar-aligned year of birth
+
+Because `np_date` appears to be indexed on cohort-specific time scales, we reconstructed an approximate calendar year of neuropsychological assessment using cohort-specific neuropsychological testing anchor years. The Original cohort baseline NP assessment was aligned to 1976, the Offspring cohort to 1999, and the Gen3 cohort to 2009. We then estimated year of birth as calendar-aligned NP assessment year minus age at assessment.
+
+```{r}
+# Neuropsychological testing calendar anchor years:
+# Original Cohort: first neuropsychological battery in 1976
+# Offspring Cohort: consistent neuropsychological testing starting in 1999
+# Generation 3 Cohort: baseline neuropsychological testing starting in 2009
+
+
+cohort_np_anchor_year <- tribble(
+  ~idtype, ~np_anchor_year,
+  0,       1976,
+  1,       1999,
+  3,       2009
+)
+
+cohort_np_anchor_date <- model_ready_pool |>
+  distinct(
+    idtype,
+    idtype_label,
+    np_date
+  ) |>
+  group_by(
+    idtype,
+    idtype_label
+  ) |>
+  summarise(
+    np_date_anchor = min(
+      np_date,
+      na.rm = TRUE
+    ),
+    .groups = "drop"
+  ) |>
+  left_join(
+    cohort_np_anchor_year,
+    by = "idtype"
+  )
+
+cohort_np_anchor_date |>
+  knitr::kable(digits = 2)
+```
+
+The resulting subject-level year of birth variable was centered at the median estimated year of birth in the pooled 3-cohort analytic sample.
+
+### 1.2 Create subject-level year of birth
+
+```{r}
+birth_year_subject <- model_ready_pool |>
+  distinct(
+    dbgap_subject_id,
+    idtype,
+    idtype_label,
+    np_date,
+    age
+  ) |>
+  left_join(
+    cohort_np_anchor_date,
+    by = c(
+      "idtype",
+      "idtype_label"
+    )
+  ) |>
+  mutate(
+    np_calendar_year =
+      np_anchor_year + (np_date - np_date_anchor) / 365.25,
+    birth_year_visit =
+      np_calendar_year - age
+  ) |>
+  group_by(
+    dbgap_subject_id,
+    idtype,
+    idtype_label
+  ) |>
+  summarise(
+    birth_year = median(
+      birth_year_visit,
+      na.rm = TRUE
+    ),
+    birth_year_sd = sd(
+      birth_year_visit,
+      na.rm = TRUE
+    ),
+    n_birth_year_obs = n(),
+    .groups = "drop"
+  )
+
+birth_year_subject |>
+  group_by(
+    idtype,
+    idtype_label
+  ) |>
+  summarise(
+    n_subjects = n(),
+    median_birth_year = median(
+      birth_year,
+      na.rm = TRUE
+    ),
+    min_birth_year = min(
+      birth_year,
+      na.rm = TRUE
+    ),
+    max_birth_year = max(
+      birth_year,
+      na.rm = TRUE
+    ),
+    median_birth_year_sd = median(
+      birth_year_sd,
+      na.rm = TRUE
+    ),
+    p95_birth_year_sd = quantile(
+      birth_year_sd,
+      0.95,
+      na.rm = TRUE
+    ),
+    .groups = "drop"
+  ) |>
+  arrange(
+    idtype
+  ) |>
+  knitr::kable(digits = 2)
+  
+```
+
+
+### 1.3 Center year of birth at the pooled 3-cohort median
+
+```{r}
+pooled3_median_birth_year <- birth_year_subject |>
+  summarise(
+    pooled3_median_birth_year = median(
+      birth_year,
+      na.rm = TRUE
+    )
+  ) |>
+  pull(
+    pooled3_median_birth_year
+  )
+
+birth_year_subject <- birth_year_subject |>
+  mutate(
+    birth_year_c = birth_year - pooled3_median_birth_year
+  )
+
+```
+
+```{r}
+birth_year_subject |>
+  summarise(
+    n_subjects = n(),
+    pooled3_median_birth_year = median(
+      birth_year,
+      na.rm = TRUE
+    ),
+    median_birth_year_c = median(
+      birth_year_c,
+      na.rm = TRUE
+    ),
+    min_birth_year_c = min(
+      birth_year_c,
+      na.rm = TRUE
+    ),
+    max_birth_year_c = max(
+      birth_year_c,
+      na.rm = TRUE
+    )
+  ) |>
+  knitr::kable(digits = 4)
+  
+```
+
+```{r}
+n_rows_before_join <- nrow(model_ready_pool)
+
+model_ready_pool <- model_ready_pool |>
+  select(
+    -any_of(
+      c(
+        "birth_year",
+        "birth_year_c",
+        "birth_year_sd",
+        "n_birth_year_obs"
+      )
+    )
+  ) |>
+  left_join(
+    birth_year_subject,
+    by = c(
+      "dbgap_subject_id",
+      "idtype",
+      "idtype_label"
+    )
+  )
+
+stopifnot(
+  nrow(model_ready_pool) == n_rows_before_join,
+  !anyNA(model_ready_pool$birth_year_c)
+)
+```
+
+### 1.4 QC check for reconstructed birth year by cohort
+
+
+```{r}
+birth_year_qc_by_cohort <-model_ready_pool |>
+  distinct(
+    dbgap_subject_id,
+    idtype,
+    idtype_label,
+    birth_year,
+    birth_year_c,
+    birth_year_sd,
+    n_birth_year_obs
+  ) |>
+  group_by(
+    idtype,
+    idtype_label
+  ) |>
+  summarise(
+    n_subjects = n_distinct(dbgap_subject_id),
+    median_birth_year = median(
+      birth_year,
+      na.rm = TRUE
+    ),
+    min_birth_year = min(
+      birth_year,
+      na.rm = TRUE
+    ),
+    max_birth_year = max(
+      birth_year,
+      na.rm = TRUE
+    ),
+    median_birth_year_c = median(
+      birth_year_c,
+      na.rm = TRUE
+    ),
+    min_birth_year_c = min(
+      birth_year_c,
+      na.rm = TRUE
+    ),
+    max_birth_year_c = max(
+      birth_year_c,
+      na.rm = TRUE
+    ),
+    median_birth_year_sd = median(
+      birth_year_sd,
+      na.rm = TRUE
+    ),
+    p95_birth_year_sd = quantile(
+      birth_year_sd,
+      0.95,
+      na.rm = TRUE
+    ),
+    .groups = "drop"
+  ) |>
+  arrange(
+    idtype
+  )
+
+birth_year_qc_by_cohort |>
+  knitr::kable(digits = 2)
+```
+
+### 1.5 Output corrected pooled model-ready dataset
+
+```{r}
+write_csv(
+  model_ready_pool,
+  file.path(
+    qc_table_dir,
+    make_output_name(
+      "neuropsych_pooled3_model_ready_xprize_with_covariates",
+      "csv"
+    )
+  )
+)
+
+write_csv(
+  model_ready_pool,
+  "../data/neuropsych_pooled3_model_ready_xprize_with_covariates.csv"
+)
+```
+
+## 2. Basic sample/range/visit QC by test × IDType × sex
+
+If Part 1 is skipped, import the analysis-ready dataset here.
+
+```{text}
+model_ready_pool <- read_csv(
+  "../data/neuropsych_pooled3_model_ready_xprize_with_covariates.csv",
+  show_col_types = FALSE
+) |>
+  mutate(
+    dbgap_subject_id = factor(dbgap_subject_id),
+    idtype = factor(idtype),
+    idtype_label = factor(idtype_label),
+    sex_label = factor(
+      sex_label,
+      levels = c("Women", "Men")
+    )
+  )
+```  
+  
+
+
+This table checks sample size, baseline age, follow-up support, and score distribution within each test × IDType × sex stratum.
+
+```{r}
+qc_subject_level <- model_ready_pool |>
+  group_by(
+    test,
+    idtype,
+    idtype_label,
+    sex_label,
+    dbgap_subject_id
+  ) |>
+  summarise(
+    n_visits = n(),
+    baseline_age = first(baseline_age),
+    max_followup_year = max(t_followup, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+qc_by_test_idtype_sex <- qc_subject_level |>
+  group_by(
+    test,
+    idtype,
+    idtype_label,
+    sex_label
+  ) |>
+  summarise(
+    n_subjects = n_distinct(dbgap_subject_id),
+    n_obs = sum(n_visits),
+    
+    n_1_visit = sum(n_visits == 1),
+    n_2plus_visits = sum(n_visits >= 2),
+    pct_2plus_visits = n_2plus_visits / n_subjects,
+    
+    baseline_age_mean = mean(baseline_age, na.rm = TRUE),
+    baseline_age_sd = sd(baseline_age, na.rm = TRUE),
+    min_baseline_age = min(baseline_age, na.rm = TRUE),
+    max_baseline_age = max(baseline_age, na.rm = TRUE),
+    
+    max_followup_mean = mean(max_followup_year, na.rm = TRUE),
+    max_followup_sd = sd(max_followup_year, na.rm = TRUE),
+    min_max_followup_year = min(max_followup_year, na.rm = TRUE),
+    max_max_followup_year = max(max_followup_year, na.rm = TRUE),
+    
+    .groups = "drop"
+  ) |>
+  left_join(
+    model_ready_pool |>
+      group_by(
+        test,
+        idtype,
+        idtype_label,
+        sex_label
+      ) |>
+      summarise(
+        score_mean = mean(score, na.rm = TRUE),
+        score_sd = sd(score, na.rm = TRUE),
+        min_score = min(score, na.rm = TRUE),
+        max_score = max(score, na.rm = TRUE),
+        .groups = "drop"
+      ),
+    by = c("test", "idtype", "idtype_label", "sex_label")
+  ) |>
+  arrange(
+    test,
+    idtype,
+    sex_label
+  )
+
+qc_by_test_idtype_sex |>
+  knitr::kable(digits = 2)
+```
+
+```{r}
+write_csv(
+  qc_by_test_idtype_sex,
+  file.path(
+    qc_table_dir,
+    make_output_name("pooled3_qc_by_test_idtype_sex", "csv")
+  )
+)
+
+```
+
+
+## 3. Pooled sample/range/visit QC by test × sex
+
+This table summarizes the pooled data support by test × sex. This matches the reporting level of the pooled integrated models, where cohort is included as a random effect.
+
+```{r}
+qc_by_test_sex_pooled <- qc_subject_level |>
+  group_by(
+    test,
+    sex_label
+  ) |>
+  summarise(
+    n_subjects = n_distinct(idtype, dbgap_subject_id),
+    n_obs = sum(n_visits),
+    
+    n_1_visit = sum(n_visits == 1),
+    n_2plus_visits = sum(n_visits >= 2),
+    pct_2plus_visits = 100 * n_2plus_visits / n_subjects,
+    
+    baseline_age_mean = mean(baseline_age, na.rm = TRUE),
+    baseline_age_sd = sd(baseline_age, na.rm = TRUE),
+    min_baseline_age = min(baseline_age, na.rm = TRUE),
+    max_baseline_age = max(baseline_age, na.rm = TRUE),
+    
+    max_followup_mean = mean(max_followup_year, na.rm = TRUE),
+    max_followup_sd = sd(max_followup_year, na.rm = TRUE),
+    min_max_followup_year = min(max_followup_year, na.rm = TRUE),
+    max_max_followup_year = max(max_followup_year, na.rm = TRUE),
+    
+    .groups = "drop"
+  ) |>
+  left_join(
+    model_ready_pool |>
+      group_by(
+        test,
+        sex_label
+      ) |>
+      summarise(
+        score_mean = mean(score, na.rm = TRUE),
+        score_sd = sd(score, na.rm = TRUE),
+        min_score = min(score, na.rm = TRUE),
+        max_score = max(score, na.rm = TRUE),
+        .groups = "drop"
+      ),
+    by = c("test", "sex_label")
+  ) |>
+  arrange(
+    test,
+    sex_label
+  )
+
+qc_by_test_sex_pooled |>
+  knitr::kable(digits = 2)
+```
+
+```{r}
+write_csv(
+  qc_by_test_sex_pooled,
+  file.path(
+    qc_table_dir,
+    make_output_name("pooled3_qc_by_test_sex", "csv")
+  )
+)
+```
+
+
+## 4. Scatter plot: baseline age vs maximum follow-up years
+
+This plot checks the available follow-up time by baseline age in the pooled 3-cohort dataset. Each point represents one subject within each test × IDType × sex stratum.
+
+### 4.1 Define test labels and X-Prize subdomains
+
+```{r}
+test_subdomain_map <- tribble(
+  ~test,             ~test_label,                                  ~xprize_subdomain,
+  "lmi",             "Logical Memory, immediate recall",            "Memory",
+  "lmd",             "Logical Memory, delayed recall",              "Memory",
+  "lmr",             "Logical Memory, recognition",                 "Memory",
+  "vri",             "Visual Reproductions, immediate recall",      "Visual Learning",
+  "vrd",             "Visual Reproductions, delayed recall",        "Visual Learning",
+  "vrr",             "Visual Reproductions, recognition",           "Visual Learning",
+  "pasi",            "Paired Associates, immediate recall",         "Memory",
+  "pasd",            "Paired Associates, delayed recall",           "Memory",
+  "pasr",            "Paired Associates, recognition",              "Memory",
+  "dsf",             "Digit Span Forward",                          "Attention",
+  "dsb",             "Digit Span Backward",                         "Executive Function & Processing",
+  "trailsa",         "Trail Making Test Part A",                    "Psychomotor",
+  "trailsb",         "Trail Making Test Part B",                    "Executive Function & Processing",
+  "coding_correct",  "WAIS-IV Coding, total correct",               "Psychomotor"
+)
+```
+
+
+```{r}
+qc_subject_level_plot <- qc_subject_level |>
+  left_join(
+    test_subdomain_map,
+    by = "test"
+  ) |>
+  mutate(
+    test_label = factor(
+      test_label,
+      levels = test_subdomain_map$test_label
+    ),
+    sex_label = factor(
+      sex_label,
+      levels = c("Women", "Men")
+    )
+  )
+```
+
+### 4.2 Check plot axis ranges
+
+```{r}
+
+plot_axis_range_check <- qc_subject_level_plot |>
+  summarise(
+    min_baseline_age = min(baseline_age, na.rm = TRUE),
+    max_baseline_age = max(baseline_age, na.rm = TRUE),
+    min_max_followup_year = min(max_followup_year, na.rm = TRUE),
+    max_max_followup_year = max(max_followup_year, na.rm = TRUE)
+  )
+
+plot_axis_range_check |>
+  knitr::kable(digits = 2)
+```
+
+```{r}
+x_min <- 5 * floor(min(qc_subject_level_plot$baseline_age, na.rm = TRUE) / 5)
+x_max <- 5 * ceiling(max(qc_subject_level_plot$baseline_age, na.rm = TRUE) / 5)
+
+y_min <- 0
+y_max <- 5 * ceiling(max(qc_subject_level_plot$max_followup_year, na.rm = TRUE) / 5)
+
+x_breaks <- seq(x_min, x_max, by = 5)
+y_breaks <- seq(y_min, y_max, by = 5)
+
+```
+
+### 4.3 Scatter plots by X-Prize subdomain
+
+These plots show baseline age versus maximum follow-up years in the pooled 3-cohort dataset.
+Each figure corresponds to one X-Prize subdomain. Within each figure, each test is shown in one row, with Women and Men displayed side by side.
+
+
+```{r}
+plot_one_subdomain <- function(data_x, subdomain_x) {
+  
+  data_sub <- data_x |>
+    filter(xprize_subdomain == subdomain_x)|>
+  mutate(
+    idtype_label = factor(
+      idtype_label,
+      levels = c("Original", "Offspring", "Gen3")
+    )
+  )
+  
+  ggplot(
+    data_sub,
+    aes(
+      x = baseline_age,
+      y = max_followup_year,
+      color = idtype_label
+    )
+  ) +
+    geom_point(
+      alpha = 0.4,
+      size = 0.8
+    ) +
+    facet_grid(
+      rows = vars(test),
+      cols = vars(sex_label)
+    ) +
+  scale_x_continuous(
+    limits = c(x_min, x_max),
+    breaks = x_breaks,
+    labels = function(x) ifelse(x %% 10 == 0, x, "")
+  ) +
+  scale_y_continuous(
+    limits = c(y_min, y_max),
+    breaks = y_breaks
+  ) +
+    scale_color_jama() +
+    labs(
+      title = paste0(
+        "Baseline age vs maximum follow-up years: ",
+        subdomain_x
+      ),
+      x = "Baseline age",
+      y = "Maximum follow-up years",
+      color = "Cohort"
+    ) +
+    theme_bw(base_size = 11) +
+    theme(
+      legend.position = "bottom",
+      strip.background = element_rect(fill = "grey90"),
+      strip.text = element_text(size = 9),
+      panel.grid.minor = element_blank(),
+      panel.spacing.y = unit(0.35, "lines"),
+      panel.spacing.x = unit(0.5, "lines"),
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+}
+```
+
+
+
+```{r}
+all_subdomains <- qc_subject_level_plot |>
+  distinct(xprize_subdomain) |>
+  pull(xprize_subdomain)
+
+walk(
+  all_subdomains,
+  \(subdomain_x) {
+    
+    plot_x <- plot_one_subdomain(
+      data_x = qc_subject_level_plot,
+      subdomain_x = subdomain_x
+    )
+    
+    n_tests_x <- qc_subject_level_plot |>
+      filter(xprize_subdomain == subdomain_x) |>
+      distinct(test) |>
+      nrow()
+    
+    file_name_x <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    ggsave(
+      filename = file.path(
+        qc_plots_dir,
+        paste0(
+          "pooled3_baseline_age_vs_max_followup_",
+          file_name_x,
+          "_",
+          output_suffix,
+          ".pdf"
+        )
+      ),
+      plot = plot_x,
+      width = 12,
+      height = max(5, 2 * n_tests_x + 2)
+    )
+  }
+)
+```
+
+## 5. Follow-up frequency plots by cohort and pooled dataset
+
+This section summarizes follow-up support using four categories requested for the pooled 3-cohort dataset:
+
+1. 0 years
+2. `>0` and `<5` years
+3. `>=5` and `<10` years
+4. `>=10` years
+
+Because these are fixed follow-up categories, the figures are frequency bar plots rather than continuous histograms.
+
+Each subject is counted once within each test × sex × cohort stratum, based on the maximum observed follow-up year. We first generate cohort-specific plots for the three cohorts, then generate pooled plots separately.
+
+
+### 5.1 Prepare follow-up categories and plot settings
+
+```{r}
+followup_category_levels <- c(
+  "0",
+  ">0, <5",
+  ">=5, <10",
+  ">=10"
+)
+
+followup_x_labels <- c(
+  "0" = "0",
+  ">0, <5" = ">0–<5",
+  ">=5, <10" = "5–<10",
+  ">=10" = "≥10"
+)
+
+```
+
+
+```{r}
+followup_subject_level <- qc_subject_level_plot |>
+  mutate(
+    followup_category = factor(
+      case_when(
+        max_followup_year == 0            ~ "0",
+        max_followup_year > 0 & max_followup_year < 5  ~ ">0, <5",
+        max_followup_year >= 5 & max_followup_year < 10 ~ ">=5, <10",
+        max_followup_year >= 10           ~ ">=10"
+      ),
+      levels = followup_category_levels
+    )
+  )
+```
+
+```{r}
+followup_subject_level |>
+  count(
+    sex_label,
+    followup_category
+  ) |>
+  arrange(
+    sex_label,
+    followup_category
+  ) |>
+  knitr::kable()
+
+```
+
+
+### 5.2 Helper functions
+
+This helper function summarizes the number of subjects in each follow-up category within each test × sex stratum.
+
+```{r}
+make_followup_category_counts <- function(data_x, cohort_name_x) {
+  
+  data_x |>
+    count(
+      test,
+      xprize_subdomain,
+      sex_label,
+      followup_category,
+      name = "n_subjects"
+    ) |>
+    group_by(
+      test,
+      xprize_subdomain,
+      sex_label
+    ) |>
+    complete(
+      followup_category = factor(
+        followup_category_levels,
+        levels = followup_category_levels
+      ),
+      fill = list(
+        n_subjects = 0
+      )
+    ) |>
+    mutate(
+      pct_subjects = 100 * n_subjects / sum(n_subjects),
+      cohort_plot = cohort_name_x
+    ) |>
+    ungroup()
+}
+```
+
+### 5.3 Cohort-specific follow-up support plots
+
+This section summarizes follow-up support separately for the Original, Offspring, and Gen3 cohorts.
+
+#### 5.3.1 Create cohort-specific count table
+
+```{r}
+cohort_names <- c(
+  "Original",
+  "Offspring",
+  "Gen3"
+)
+
+followup_category_counts_cohort <- map_dfr(
+  cohort_names,
+  \(cohort_x) {
+    
+    followup_subject_level |>
+      filter(
+        idtype_label == cohort_x
+      ) |>
+      make_followup_category_counts(
+        cohort_name_x = cohort_x
+      )
+  }
+) |>
+  mutate(
+    cohort_plot = factor(
+      cohort_plot,
+      levels = cohort_names
+    )
+  ) |>
+  arrange(
+    test,
+    sex_label,
+    cohort_plot,
+    followup_category
+  )
+```
+
+
+
+```{r}
+followup_category_counts_cohort |>
+  count(
+    cohort_plot,
+    sex_label,
+    followup_category,
+    wt = n_subjects,
+    name = "n_subjects_across_tests"
+  ) |>
+  arrange(
+    cohort_plot,
+    sex_label,
+    followup_category
+  ) |>
+  knitr::kable()
+```
+
+
+#### 5.3.2 Define plotting function for one subdomain
+
+```{r}
+plot_followup_distribution_one_subdomain <- function(data_x, subdomain_x) {
+  
+  data_sub <- data_x |>
+    filter(
+      xprize_subdomain == subdomain_x
+    )
+  
+  ggplot(
+    data_sub,
+    aes(
+      x = followup_category,
+      y = n_subjects,
+      fill = cohort_plot
+    )
+  ) +
+    geom_col(
+      position = position_dodge(width = 0.75),
+      width = 0.7,
+      color = "white",
+      linewidth = 0.25
+    ) +
+    geom_text(
+      aes(
+        label = n_subjects
+      ),
+      position = position_dodge(width = 0.75),
+      vjust = -0.25,
+      size = 2.6,
+      color = "grey40"
+    ) +
+    facet_grid(
+      rows = vars(test),
+      cols = vars(sex_label),
+      scales = "free_y"
+    ) +
+    scale_x_discrete(
+      labels = followup_x_labels,
+      drop = FALSE
+    ) +
+    scale_fill_jama(
+      name = "Cohort"
+    ) +
+    scale_y_continuous(
+      expand = expansion(mult = c(0, 0.15))
+    ) +
+    labs(
+      title = paste0(
+        "Follow-up distribution by cohort: ",
+        subdomain_x
+      ),
+      x = "Follow-up duration category (years)",
+      y = "Number of subjects"
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      legend.position = "bottom",
+      plot.title = element_text(size = 15, face = "bold"),
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10.5),
+      strip.background = element_rect(fill = "grey90"),
+      strip.text = element_text(size = 10),
+      panel.grid.minor = element_blank(),
+      panel.spacing.y = unit(0.6, "lines"),
+      panel.spacing.x = unit(0.7, "lines")
+    )
+}
+```
+
+
+```{r, fig.width=14, fig.height=9}
+
+plot_followup_distribution_one_subdomain(
+  data_x = followup_category_counts_cohort,
+  subdomain_x = "Memory"
+)
+```
+
+#### 5.3.3 Save cohort-specific plots
+
+```{r}
+all_subdomains <- followup_category_counts_cohort |>
+  distinct(xprize_subdomain) |>
+  pull(xprize_subdomain)
+
+walk(
+  all_subdomains,
+  \(subdomain_x) {
+    
+    plot_x <- plot_followup_distribution_one_subdomain(
+      data_x = followup_category_counts_cohort,
+      subdomain_x = subdomain_x
+    )
+    
+    n_tests_x <- followup_category_counts_cohort |>
+      filter(
+        xprize_subdomain == subdomain_x
+      ) |>
+      distinct(test) |>
+      nrow()
+    
+    file_name_x <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    ggsave(
+      filename = file.path(
+        qc_plots_dir,
+        paste0(
+          "pooled3_followup_distribution_by_cohort_",
+          file_name_x,
+          "_",
+          output_suffix,
+          ".pdf"
+        )
+      ),
+      plot = plot_x,
+      width = 14,
+      height = max(6, 1.35 * n_tests_x + 1.5)
+    )
+  }
+)
+```
+
+### 5.4 Pooled follow-up support plots
+
+#### 5.4.1 Create pooled count table
+
+```{r}
+followup_category_counts_pooled <- make_followup_category_counts(
+  data_x = followup_subject_level,
+  cohort_name_x = "Pooled"
+) |>
+  arrange(
+    test,
+    sex_label,
+    followup_category
+  )
+
+followup_category_counts_pooled |>
+  count(
+    sex_label,
+    followup_category,
+    wt = n_subjects,
+    name = "n_subjects_across_tests"
+  ) |>
+  arrange(
+    sex_label,
+    followup_category
+  ) |>
+  knitr::kable()
+```
+
+
+#### 5.4.2 Define plotting function for pooled subdomain
+
+```{r}
+plot_followup_distribution_pooled_one_subdomain <- function(data_x, subdomain_x) {
+  
+  data_sub <- data_x |>
+    filter(
+      xprize_subdomain == subdomain_x
+    )
+  
+  ggplot(
+    data_sub,
+    aes(
+      x = followup_category,
+      y = n_subjects
+    )
+  ) +
+    geom_col(
+      width = 0.65,
+      fill = "#4F6D7A",
+      color = "white",
+      linewidth = 0.25
+    ) +
+    geom_text(
+      aes(
+        label = n_subjects
+      ),
+      vjust = -0.25,
+      size = 2.6,
+      color = "grey40"
+    ) +
+    facet_grid(
+      rows = vars(test),
+      cols = vars(sex_label),
+      scales = "free_y"
+    ) +
+    scale_x_discrete(
+      labels = followup_x_labels,
+      drop = FALSE
+    ) +
+    scale_y_continuous(
+      expand = expansion(mult = c(0, 0.15))
+    ) +
+    labs(
+      title = paste0(
+        "Pooled follow-up distribution: ",
+        subdomain_x
+      ),
+      x = "Follow-up duration category (years)",
+      y = "Number of subjects"
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      plot.title = element_text(size = 15, face = "bold"),
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10.5),
+      strip.background = element_rect(fill = "grey90"),
+      strip.text = element_text(size = 10),
+      panel.grid.minor = element_blank(),
+      panel.spacing.y = unit(0.6, "lines"),
+      panel.spacing.x = unit(0.7, "lines")
+    )
+}
+```
+
+
+
+#### 5.4.3 Save pooled follow-up distribution plots
+
+```{r}
+all_subdomains_pooled <- followup_category_counts_pooled |>
+  distinct(xprize_subdomain) |>
+  pull(xprize_subdomain)
+
+walk(
+  all_subdomains_pooled,
+  \(subdomain_x) {
+    
+    plot_x <- plot_followup_distribution_pooled_one_subdomain(
+      data_x = followup_category_counts_pooled,
+      subdomain_x = subdomain_x
+    )
+    
+    n_tests_x <- followup_category_counts_pooled |>
+      filter(
+        xprize_subdomain == subdomain_x
+      ) |>
+      distinct(test) |>
+      nrow()
+    
+    file_name_x <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    ggsave(
+      filename = file.path(
+        qc_plots_dir,
+        paste0(
+          "pooled3_followup_distribution_pooled_",
+          file_name_x,
+          "_",
+          output_suffix,
+          ".pdf"
+        )
+      ),
+      plot = plot_x,
+      width = 12,
+      height = max(6, 1.35 * n_tests_x + 1.5)
+    )
+  }
+)
+```
+
+## 6. Empirical follow-up availability by baseline age
+
+This section summarizes empirical follow-up availability across baseline age categories.
+
+The goal is to complement Tables 2 and 3 by showing how many subjects are available to support predictions at different ages and follow-up horizons.
+
+Unlike the follow-up distribution plots in Section 5, subjects can contribute to more than one follow-up availability level. For example, a subject observed through 15 years contributes to the baseline, >=5, >=10, and >=15 follow-up levels.
+
+We first generate pooled heatmaps for the combined 3-cohort dataset. Cohort-specific heatmaps can be added later if needed.
+
+
+### 6.1 Prepare baseline age categories and follow-up availability levels
+
+```{r}
+age_bin_breaks <- c(
+  -Inf, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, Inf
+)
+
+age_bin_levels <- c(
+  "<30",
+  "30-34",
+  "35-39",
+  "40-44",
+  "45-49",
+  "50-54",
+  "55-59",
+  "60-64",
+  "65-69",
+  "70-74",
+  "75-79",
+  "80-84",
+  ">=85"
+)
+
+followup_availability_levels <- c(
+  "Baseline",
+  ">0-<5",
+  ">=5",
+  ">=10",
+  ">=15",
+  ">=20"
+)
+```
+
+
+Subject-level availability data derived directly from `model_ready_pool`.
+
+```{r}
+availability_subject_level <- model_ready_pool |>
+  group_by(
+    test,
+    idtype,
+    idtype_label,
+    sex_label,
+    dbgap_subject_id
+  ) |>
+  summarise(
+    baseline_age = first(baseline_age),
+    max_followup_year = max(t_followup, na.rm = TRUE),
+    has_followup_0_5 = any(t_followup > 0 & t_followup < 5, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  left_join(
+    test_subdomain_map,
+    by = "test"
+  ) |>
+  mutate(
+    baseline_age_bin = cut(
+      baseline_age,
+      breaks = age_bin_breaks,
+      labels = age_bin_levels,
+      right = FALSE
+    ),
+    baseline_age_bin = factor(
+      baseline_age_bin,
+      levels = age_bin_levels
+    )
+  ) |>
+  filter(
+    !is.na(baseline_age_bin)
+  )
+
+availability_subject_level |>
+  count(
+    baseline_age_bin
+  ) |>
+  arrange(
+    baseline_age_bin
+  ) |>
+  knitr::kable()
+  
+```
+
+
+### 6.2 Create availability support table
+
+```{r}
+availability_support_pooled <- availability_subject_level |>
+  select(
+    test,
+    xprize_subdomain,
+    sex_label,
+    dbgap_subject_id,
+    baseline_age_bin,
+    max_followup_year,
+    has_followup_0_5
+  ) |>
+  crossing(
+    followup_availability = factor(
+      followup_availability_levels,
+      levels = followup_availability_levels
+    )
+  ) |>
+  mutate(
+    available = case_when(
+      followup_availability == "Baseline" ~ TRUE,
+      followup_availability == ">0-<5" ~ has_followup_0_5,
+      followup_availability == ">=5" ~ max_followup_year >= 5,
+      followup_availability == ">=10" ~ max_followup_year >= 10,
+      followup_availability == ">=15" ~ max_followup_year >= 15,
+      followup_availability == ">=20" ~ max_followup_year >= 20,
+      TRUE ~ FALSE
+    )
+  ) |>
+  filter(
+    available
+  ) |>
+  count(
+    test,
+    xprize_subdomain,
+    sex_label,
+    baseline_age_bin,
+    followup_availability,
+    name = "n_subjects"
+  ) |>
+  group_by(
+    test,
+    xprize_subdomain,
+    sex_label
+  ) |>
+  complete(
+    baseline_age_bin = factor(
+      age_bin_levels,
+      levels = age_bin_levels
+    ),
+    followup_availability = factor(
+      followup_availability_levels,
+      levels = followup_availability_levels
+    ),
+    fill = list(
+      n_subjects = 0
+    )
+  ) |>
+  ungroup() |>
+  arrange(
+    test,
+    sex_label,
+    baseline_age_bin,
+    followup_availability
+  )
+
+availability_support_pooled |>
+  filter(
+    xprize_subdomain == "Memory"
+  ) |>
+  count(
+    followup_availability,
+    wt = n_subjects,
+    name = "n_subjects_across_age_bins"
+  ) |>
+  arrange(
+    followup_availability
+  ) |>
+  knitr::kable()
+```
+
+### 6.3 Define plotting function for one subdomain
+
+```{r}
+plot_followup_availability_one_test <- function(data_x, test_x) {
+  
+  data_sub <- data_x |>
+    filter(
+      test == test_x
+    )
+  
+  subdomain_x <- data_sub |>
+    distinct(xprize_subdomain) |>
+    pull(xprize_subdomain) |>
+    first()
+  
+  ggplot(
+    data_sub,
+    aes(
+      x = baseline_age_bin,
+      y = followup_availability,
+      fill = n_subjects
+    )
+  ) +
+    geom_tile(
+      color = "white",
+      linewidth = 0.35
+    ) +
+    geom_text(
+      aes(
+        label = if_else(
+          n_subjects > 0,
+          as.character(n_subjects),
+          ""
+        )
+      ),
+      size = 3,
+      color = "grey25"
+    ) +
+    facet_wrap(
+      vars(sex_label),
+      nrow = 1
+    ) +
+    scale_fill_gradient(
+      low = "#F7FBFF",
+      high = "#3182BD",
+      name = "N"
+    ) +
+    labs(
+      title = paste0(
+        "Follow-up availability by baseline age: ",
+        test_x
+      ),
+      subtitle = paste0(
+        "X-Prize subdomain: ",
+        subdomain_x
+      ),
+      x = "Baseline age category (years)",
+      y = "Available follow-up"
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      plot.title = element_text(size = 15, face = "bold"),
+      plot.subtitle = element_text(size = 12, color = "grey30"),
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10.5),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      strip.background = element_rect(fill = "grey90"),
+      strip.text = element_text(size = 11),
+      panel.grid = element_blank(),
+      panel.spacing.x = unit(0.8, "lines"),
+      legend.position = "right"
+    )
+}
+```
+
+
+```{r, fig.width=12, fig.height=5}
+plot_followup_availability_one_test(
+  data_x = availability_support_pooled,
+  test_x = "lmi"
+)
+```
+
+
+### 6.4 Save pooled availability heatmaps
+
+```{r}
+availability_test_order <- availability_support_pooled |>
+  distinct(
+    xprize_subdomain,
+    test
+  ) |>
+  arrange(
+    xprize_subdomain,
+    test
+  )
+
+walk2(
+  availability_test_order$xprize_subdomain,
+  availability_test_order$test,
+  \(subdomain_x, test_x) {
+    
+    plot_x <- plot_followup_availability_one_test(
+      data_x = availability_support_pooled,
+      test_x = test_x
+    )
+    
+    subdomain_file_x <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    test_file_x <- test_x |>
+      str_to_lower() |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    ggsave(
+      filename = file.path(
+        qc_plots_dir,
+        paste0(
+          "pooled3_followup_availability_baselineage_",
+          subdomain_file_x,
+          "_",
+          test_file_x,
+          "_",
+          output_suffix,
+          ".pdf"
+        )
+      ),
+      plot = plot_x,
+      width = 12,
+      height = 5
+    )
+  }
+)
+```
+
+
+## 7. Empirical age coverage for Class 1 age-as-time models
+
+This section summarizes empirical age coverage for the Class 1 age-as-time models.
+
+The Class 1 models estimate cognitive performance as a function of age at measurement. Therefore, the main QC question is whether each test has enough observations across the observed and target age ranges.
+
+Unlike Section 6, this QC does not use baseline age × follow-up horizons. Instead, it summarizes observed neuropsychological measurements by age-at-measure category.
+
+### 7.1 Prepare observed age categories
+
+```{r}
+age_measure_breaks <- c(
+  -Inf, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, Inf
+)
+
+age_measure_levels <- c(
+  "<30",
+  "30-34",
+  "35-39",
+  "40-44",
+  "45-49",
+  "50-54",
+  "55-59",
+  "60-64",
+  "65-69",
+  "70-74",
+  "75-79",
+  "80-84",
+  "85-89",
+  ">=90"
+)
+
+```
+
+```{r}
+class1_age_level <- model_ready_pool |>
+  left_join(
+    test_subdomain_map,
+    by = "test"
+  ) |>
+  mutate(
+    age_measure_bin = cut(
+      age_at_measure,
+      breaks = age_measure_breaks,
+      labels = age_measure_levels,
+      right = FALSE
+    ),
+    age_measure_bin = factor(
+      age_measure_bin,
+      levels = age_measure_levels
+    )
+  ) |>
+  filter(
+    !is.na(age_measure_bin)
+  )
+
+class1_age_level |>
+  count(
+    age_measure_bin
+  ) |>
+  arrange(
+    age_measure_bin
+  ) |>
+  knitr::kable()
+```
+
+
+### 7.2 Create Class 1 age coverage table
+
+```{r}
+class1_age_coverage <- class1_age_level |>
+  group_by(
+    test,
+    xprize_subdomain,
+    idtype_label,
+    sex_label,
+    age_measure_bin
+  ) |>
+  summarise(
+    n_obs = n(),
+    n_subjects = n_distinct(dbgap_subject_id),
+    .groups = "drop"
+  ) |>
+  group_by(
+    test,
+    xprize_subdomain,
+    idtype_label,
+    sex_label
+  ) |>
+  complete(
+    age_measure_bin = factor(
+      age_measure_levels,
+      levels = age_measure_levels
+    ),
+    fill = list(
+      n_obs = 0,
+      n_subjects = 0
+    )
+  ) |>
+  ungroup() |>
+  mutate(
+    idtype_label = factor(
+      idtype_label,
+      levels = c(
+        "Original",
+        "Offspring",
+        "Gen3"
+      )
+    )
+  ) |>
+  arrange(
+    test,
+    sex_label,
+    age_measure_bin,
+    idtype_label
+  )
+
+```
+
+```{r}
+class1_age_coverage |>
+  filter(
+    test == "lmi"
+  ) |>
+  group_by(
+    test,
+    sex_label,
+    age_measure_bin
+  ) |>
+  summarise(
+    n_obs_total = sum(n_obs),
+    n_subjects_total = sum(n_subjects),
+    .groups = "drop"
+  ) |>
+  knitr::kable()
+```
+
+
+```{r}
+write_csv(
+  class1_age_coverage,
+  file.path(
+    qc_table_dir,
+    make_output_name("pooled3_class1_age_coverage_pooled", "csv")
+  )
+)
+```
+
+### 7.3 Define plotting function for one test
+
+```{r}
+plot_class1_age_coverage_one_test <- function(data_x, test_x) {
+  
+  data_sub <- data_x |>
+    filter(
+      test == test_x
+    )
+  
+  subdomain_x <- data_sub |>
+    distinct(xprize_subdomain) |>
+    pull(xprize_subdomain) |>
+    first()
+  
+  label_data <- data_sub |>
+    group_by(
+      sex_label,
+      age_measure_bin
+    ) |>
+    summarise(
+      n_obs_total = sum(n_obs),
+      .groups = "drop"
+    )
+  
+  ggplot(
+    data_sub,
+    aes(
+      x = age_measure_bin,
+      y = n_obs,
+      fill = idtype_label
+    )
+  ) +
+    geom_col(
+      width = 0.75,
+      color = "white",
+      linewidth = 0.25
+    ) +
+    geom_text(
+      data = label_data,
+      aes(
+        x = age_measure_bin,
+        y = n_obs_total,
+        label = n_obs_total
+      ),
+      inherit.aes = FALSE,
+      vjust = -0.25,
+      size = 2.8,
+      color = "grey40"
+    ) +
+    facet_wrap(
+      vars(sex_label),
+      nrow = 1
+    ) +
+    scale_fill_jama(
+      name = "Cohort"
+    ) +
+    scale_y_continuous(
+      expand = expansion(mult = c(0, 0.12))
+    ) +
+    labs(
+      title = paste0(
+        "Observed age coverage for Class 1 model: ",
+        test_x
+      ),
+      subtitle = paste0(
+        "X-Prize subdomain: ",
+        subdomain_x
+      ),
+      x = "Age at measurement category (years)",
+      y = "Number of observations"
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      legend.position = "bottom",
+      plot.title = element_text(size = 15, face = "bold"),
+      plot.subtitle = element_text(size = 12, color = "grey30"),
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10.5),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      strip.background = element_rect(fill = "grey90"),
+      strip.text = element_text(size = 11),
+      panel.grid.minor = element_blank(),
+      panel.spacing.x = unit(0.8, "lines")
+    )
+}
+```
+
+
+```{r, fig.width=12, fig.height=5}
+plot_class1_age_coverage_one_test(
+  data_x = class1_age_coverage,
+  test_x = "lmi"
+)
+```
+
+
+### 7.4 Save Class 1 age coverage plots by test
+
+```{r}
+class1_test_order <- class1_age_coverage |>
+  distinct(
+    xprize_subdomain,
+    test
+  ) |>
+  arrange(
+    xprize_subdomain,
+    test
+  )
+
+walk2(
+  class1_test_order$xprize_subdomain,
+  class1_test_order$test,
+  \(subdomain_x, test_x) {
+    
+    plot_x <- plot_class1_age_coverage_one_test(
+      data_x = class1_age_coverage,
+      test_x = test_x
+    )
+    
+    subdomain_file_x <- subdomain_x |>
+      str_to_lower() |>
+      str_replace_all("&", "and") |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    test_file_x <- test_x |>
+      str_to_lower() |>
+      str_replace_all("[^a-z0-9]+", "_") |>
+      str_replace_all("_+", "_") |>
+      str_replace_all("^_|_$", "")
+    
+    ggsave(
+      filename = file.path(
+        qc_plots_dir,
+        paste0(
+          "pooled3_class1_age_coverage_",
+          subdomain_file_x,
+          "_",
+          test_file_x,
+          "_",
+          output_suffix,
+          ".pdf"
+        )
+      ),
+      plot = plot_x,
+      width = 12,
+      height = 5
+    )
+  }
+)
+```
+

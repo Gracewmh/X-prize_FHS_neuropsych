@@ -1,0 +1,456 @@
+---
+title: "Pooled 3-Cohort Neuropsych: Fit Class 1 and Class 2 Crude Models"
+author: "Minghui (Grace) Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This script fits crude (without any covariates) pooled Class 1 and Class 2 mixed-effects models for neuropsych tests in the Framingham Study Original, Offspring, and Gen3 cohorts.
+
+The fitted model objects are saved as RDS files and used by downstream scripts for formatted tables, life-course plots, and spontaneous reversal analyses.
+
+
+<!--
+Pipeline step: 01 (run order: 00 -> 01 -> 02 -> 03 -> 04 -> 05 -> 06)
+Purpose: Fit Class 1 (age-as-time) and Class 2 (follow-up-as-time) mixed-effects
+         models for each test × sex stratum using the 2-visit analysis sample.
+Inputs:  neuropsych_pooled3_model_ready_xprize_with_covariates.csv (via setup_analysis_sample.R)
+Key steps: Define Class 1/Class 2 formula text; check sample sizes; fit models
+           with automatic fallback from random slope to intercept-only; save RDS.
+Core functions: fit_one_pooled_model_class() (model_fitting.R),
+                make_pooled_formula_text() (model_formulas.R)
+Outputs: - pooled3_crude_2visit_class1_fits.rds (../output/models/)
+         - pooled3_crude_2visit_class2_fits.rds (../output/models/)
+-->
+
+
+## 0.  Set up 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+
+library(tidyverse)
+library(janitor)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(broom.mixed)
+library(openxlsx)
+
+source("R/_load_all.R")
+
+output_suffix <- format(Sys.Date(), "%m%d%Y")
+```
+
+The `SAMPLE` switch controls whether models are fit on the full pooled sample or the repeated-measures subset (subjects with ≥2 model-ready visits per test). Setting it once here tags every downstream output so the two runs never collide.
+
+```{r}
+SAMPLE <- "2visit"   # "full" or "2visit"
+covariates <- NULL
+source("R/setup_analysis_sample.R") # data import is finished in this step
+```
+
+
+## 1. Model specification
+
+We fit the pooled 3-cohort models separately within each `test × sex` stratum.
+
+The three Framingham cohorts are pooled into one model, but cohort structure is retained through cohort-level random effects. Subject-level random effects account for repeated measurements within the same participant. This crude model includes centered year of birth (`birth_year_c`) as a fixed-effect covariate. `birth_year_c = 0` represents the pooled 3-cohort median birth year.
+
+### Class 1 model: age as the time scale
+
+Class 1 models score as a function of age at measurement. Age is centered at 65 (`cage_65`) and modeled with both linear and quadratic terms.
+
+```r
+score ~ cage_65 + I(cage_65^2) + birth_year_c +
+  (1 + cage_65 | idtype_label) +
+  (1 + cage_65 | dbgap_subject_id)
+```
+
+Model terms:
+
+- `score`: neuropsychological test score.
+- `cage_65`: age at measurement centered at 65 years.
+- `birth_year_c`: estimated birth year centered at the pooled 3-cohort median birth year.
+- `idtype_label`: Framingham cohort label.
+- `dbgap_subject_id`: participant ID.
+- `(1 + cage_65 | idtype_label)`: cohort-level random intercept and age slope.
+- `(1 + cage_65 | dbgap_subject_id)`: participant-level random intercept and age slope.
+
+
+### Class 2 model: follow-up time as the time scale
+
+Class 2 models score as a function of baseline age and follow-up time. The main model allows baseline age to modify both linear and quadratic follow-up change.
+
+```r
+score ~ baseline_age * (t_followup + I(t_followup^2)) + birth_year_c +
+  (1 + t_followup | idtype_label) +
+  (1 + t_followup | dbgap_subject_id)
+```
+
+Model terms:
+
+- `score`: neuropsychological test score.
+- `baseline_age`: age at first model-ready visit for that test.
+- `t_followup`: years since baseline visit.
+- `baseline_age * (t_followup + I(t_followup^2))`: baseline age main effect plus interactions with linear and quadratic follow-up time.
+- `birth_year_c`: estimated birth year centered at the pooled 3-cohort median birth year.
+- `idtype_label`: Framingham cohort label.
+- `dbgap_subject_id`: participant ID.
+- `(1 + t_followup | idtype_label)`: cohort-level random intercept and follow-up slope.
+- `(1 + t_followup | dbgap_subject_id)`: participant-level random intercept and follow-up slope.
+
+### The fallback models
+
+The fallback model keeps the same fixed effects and cohort-level random effects, but uses a participant-level random intercept only.
+
+For both Class 1 and Class 2, the primary model is fit first. If the participant-level random slope is not identifiable, the model is refit using the fallback random-effect structure.
+
+The fallback structure is mainly relevant in the full-sample analysis, especially for test strata with many baseline-only participants. In the current analysis with 2+ visit sample (`SAMPLE = "2visit"`), all fitted models used the primary random-effect structure, so no fallback models were needed.
+
+## 2. Define crude model settings
+
+```{r}
+# functions can be found in `model_formulas.R`
+
+class1_primary_formula_text <- make_pooled_formula_text(
+  model_class = "class1",
+  covariates = covariates,
+  subject_random_slope = TRUE
+)
+
+class1_fallback_formula_text <- make_pooled_formula_text(
+  model_class = "class1",
+  covariates = covariates,
+  subject_random_slope = FALSE
+)
+
+class2_primary_formula_text <- make_pooled_formula_text(
+  model_class = "class2",
+  covariates = covariates,
+  subject_random_slope = TRUE
+)
+
+class2_fallback_formula_text <- make_pooled_formula_text(
+  model_class = "class2",
+  covariates = covariates,
+  subject_random_slope = FALSE
+)
+
+model_formula_check <- tibble(
+  model_class = c("class1", "class1", "class2", "class2"),
+  model_type = c("primary", "fallback", "primary", "fallback"),
+  subject_random_slope = c(TRUE, FALSE, TRUE, FALSE),
+  formula = c(
+    class1_primary_formula_text,
+    class1_fallback_formula_text,
+    class2_primary_formula_text,
+    class2_fallback_formula_text
+  )
+)
+
+model_formula_check |>
+  knitr::kable()
+```
+
+## 3. Check model sample size before fitting
+
+This section checks the number of observations and subjects available for each test × sex stratum in the full pooled dataset, before any sample restriction. The `complete_for_model` flag is computed once here and reused downstream.
+
+```{r}
+model_sample_check_by_test_sex <- model_ready_pool |>
+  group_by(
+    test,
+    sex_label
+  ) |>
+  summarise(
+    n_obs_all = n(),
+    n_subjects_all = n_distinct(dbgap_subject_id),
+
+    n_obs_model_ready = sum(complete_for_model),
+    n_subjects_model_ready = n_distinct(
+      dbgap_subject_id[complete_for_model]
+    ),
+
+    n_missing_score = sum(is.na(score)),
+    n_missing_cage_65 = sum(is.na(cage_65)),
+    n_missing_baseline_age = sum(is.na(baseline_age)),
+    n_missing_t_followup = sum(is.na(t_followup)),
+    n_missing_birth_year_c = sum(is.na(birth_year_c)),
+
+    .groups = "drop"
+  ) |>
+  mutate(
+    pct_obs_kept = 100 * n_obs_model_ready / n_obs_all,
+    pct_subjects_kept = 100 * n_subjects_model_ready / n_subjects_all
+  ) |>
+  arrange(
+    test,
+    sex_label
+  )
+
+model_sample_check_by_test_sex |>
+  knitr::kable(digits = 2)
+```
+
+```{r}
+write_csv(
+  model_sample_check_by_test_sex,
+  file.path(
+    model_table_dir,
+    make_output_name(
+      paste0("models_", model_tag, "_sample_check_by_test_sex"),
+      "csv"
+    )
+  )
+)
+```
+
+
+## 4. Restrict sample (2-visit only) and create analysis grid
+
+When `SAMPLE = "2visit"`, we keep only subjects with at least two model-ready visits per test. A subject-level random slope needs at least two measurements; single-visit subjects make the slope variance unidentifiable and cause the fallback strata seen in the full-sample run. The restriction is per test because a subject may have repeated measures on one test but not another.
+
+When `SAMPLE = "full"`, this section is a no-op — `model_ready_analysis` is just `model_ready_pool`.
+
+```{r}
+# Summarize the analysis sample restriction already applied in setup_analysis_sample.R
+
+
+if (SAMPLE == "2visit") {
+
+  min_visits_per_test <- 2
+
+  visits_per_subject_test <- model_ready_pool |>
+    filter(complete_for_model) |>
+    count(test, sex_label, dbgap_subject_id, name = "n_visits")
+
+  restriction_summary <- visits_per_subject_test |>
+    group_by(test, sex_label) |>
+    summarise(
+      n_subjects_full = n(),
+      n_subjects_repeated = sum(n_visits >= min_visits_per_test),
+      n_obs_full = sum(n_visits),
+      n_obs_repeated = sum(n_visits[n_visits >= min_visits_per_test]),
+      .groups = "drop"
+    ) |>
+    mutate(
+      n_subjects_dropped = n_subjects_full - n_subjects_repeated,
+      pct_subjects_retained = 100 * n_subjects_repeated / n_subjects_full
+    ) |>
+    arrange(test, sex_label)
+
+} else {
+  restriction_summary <- tibble(
+    note = "SAMPLE = 'full'; no 2-visit restriction was applied."
+  )
+}
+
+restriction_summary |>
+  knitr::kable(digits = 1)
+```
+
+```{r}
+write_csv(
+  restriction_summary,
+  file.path(
+    model_table_dir,
+    make_output_name(
+      paste0("models_", model_tag, "_restriction_summary"),
+      "csv"
+    )
+  )
+)
+```
+
+
+```{r}
+
+analysis_grid <- model_ready_analysis |>
+  # `complete_for_model` is created in `setup_analysis_sample.R`. It keeps rows with non-missing model-required variables.
+  filter(complete_for_model) |>  
+  group_by(
+    test,
+    sex_label
+  ) |>
+  nest() |>
+  mutate(
+    model_version = model_version,
+    n_obs = map_int(data, nrow),
+    n_subjects = map_int(
+      data,
+      ~ n_distinct(.x$dbgap_subject_id)
+    ),
+    n_cohorts = map_int(
+      data,
+      ~ n_distinct(.x$idtype)
+    )
+  ) |>
+  ungroup() |>
+  arrange(
+    test,
+    sex_label
+  )
+
+analysis_grid |>
+  select(
+    test,
+    sex_label,
+    n_obs,
+    n_subjects,
+    n_cohorts
+  ) |>
+  knitr::kable()
+```
+
+## 5. Fit crude pooled Class 1 and Class 2 models
+
+This section fits the crude pooled Class 1 and Class 2 models separately for each test × sex stratum. For each model class, the primary model includes subject-level random intercepts and random slopes. If the primary model is not identifiable, the same fixed-effect model is refit using subject-level random intercepts only. Cohort-level random intercepts and random slopes are retained in both specifications.
+
+
+```{r}
+
+#`fit_one_pooled_model_class()` is saved in `R/model_fitting.R`
+
+class1_fits <- fit_one_pooled_model_class(
+  grid_x = analysis_grid,
+  model_class_x = "class1"
+)
+
+class2_fits <-fit_one_pooled_model_class(
+  grid_x = analysis_grid,
+  model_class_x = "class2"
+)
+
+model_fits <- bind_rows(
+  class1_fits,
+  class2_fits
+)
+```
+
+### 5.1 Check fallback model strata
+
+This section lists the test × sex strata where the primary subject-level random slope model was not identifiable and the fallback subject-level random-intercept-only model was used.
+
+```{r}
+fallback_model_strata <- model_fits |>
+  filter(
+    fit_success,
+    !subject_random_slope_used
+  ) |>
+  select(
+    model_class,
+    test,
+    sex_label,
+    n_obs,
+    n_subjects,
+    n_cohorts,
+    random_effect_structure,
+    primary_error_message
+  ) |>
+  arrange(
+    model_class,
+    test,
+    sex_label
+  )
+
+fallback_model_strata |>
+  knitr::kable()
+
+```
+
+```{r}
+write_csv(
+  fallback_model_strata,
+  file.path(
+    model_table_dir,
+    make_output_name(
+      paste0("models_", model_tag, "_fallback_model_strata"),
+      "csv"
+    )
+  )
+)
+```
+
+### 5.2 Check failed model strata
+This section checks whether any test × sex models failed even after applying the fallback random-effect structure.
+
+```{r}
+failed_model_strata <- model_fits |>
+  filter(
+    !fit_success
+  ) |>
+  select(
+    model_class,
+    test,
+    sex_label,
+    n_obs,
+    n_subjects,
+    n_cohorts,
+    primary_error_message,
+    fallback_error_message
+  ) |>
+  arrange(
+    model_class,
+    test,
+    sex_label
+  )
+
+failed_model_strata |>
+  knitr::kable()
+
+```
+
+```{r}
+write_csv(
+  failed_model_strata,
+  file.path(
+    model_table_dir,
+    make_output_name(
+      paste0("models_", model_tag, "_failed_model_strata"),
+      "csv"
+    )
+  )
+)
+```
+
+### 5.3 Save fitted model objects
+
+This section saves the fitted Class 1 and Class 2 model objects as RDS files. These saved objects are used by downstream scripts (02 tables, 03 and 04 life-course plots, 05 and 06 spontaneous reversal) so that the models do not need to be refit.
+
+```{r}
+model_rds_dir <- "../output/models"
+
+dir.create(
+  model_rds_dir,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+saveRDS(
+  class1_fits,
+  file.path(
+    model_rds_dir,
+    paste0("pooled3_", model_tag, "_class1_fits.rds")
+  )
+)
+
+saveRDS(
+  class2_fits,
+  file.path(
+    model_rds_dir,
+    paste0("pooled3_", model_tag, "_class2_fits.rds")
+  )
+)
+
+cat(
+  "Saved class1_fits:",
+  nrow(class1_fits), "strata\n",
+  "Saved class2_fits:",
+  nrow(class2_fits), "strata\n"
+)
+```

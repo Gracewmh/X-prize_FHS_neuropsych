@@ -1,0 +1,363 @@
+---
+title: "Pooled 3-Cohort Neuropsych: Formatted Output Tables (Class 1 & Class 2)"
+author: "Minghui (Grace) Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This script loads the fitted model objects saved by `01_fit_models.Rmd` and produces the formatted Excel workbook containing Tables 1–3 for both model classes, plus summary sheets.
+
+Table 1: predicted means at index ages.
+Table 2: expected change over 5/10/15/20-year horizons.
+Table 3: percentage decline calculated from Table 2 estimated changes and Table 1 estimated means.
+
+<!--
+Pipeline step: 02 (run order: 00 -> 01 -> 02 -> 03 -> 04 -> 05 -> 06)
+Purpose: Generate formatted Excel workbooks with Tables 1–3 for both Class 1 and
+         Class 2 models; includes test dictionary, data summary, and follow-up sheets.
+Inputs:  - Class 1 and Class 2 fitted model RDS from 01 (../output/models/)
+         - neuropsych_pooled3_model_ready_xprize_with_covariates.csv (via setup_analysis_sample.R)
+Key steps: Build emmeans-based Table 1 (predicted means) and Table 2 (expected
+           change over 5/10/15/20yr) for each model class; write formatted Excel
+           workbook with per-test sheets and summary sheets.
+Core functions: table_class1.R, table_class2.R, workbook_writers.R
+Outputs: xprize_pooled3_{model_version}_formatted_tables_by_test.xlsx (../output/tables/)
+Downstream: None (terminal output step for tables)
+-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+
+library(tidyverse)
+library(janitor)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(openxlsx)
+
+source("R/_load_all.R")
+
+output_suffix <- format(Sys.Date(), "%m%d%Y")
+```
+
+
+
+## 0.1 Choose analysis sample
+
+Must match the `SAMPLE` setting used when running `01_fit_models.Rmd`.
+
+```{r}
+SAMPLE <- "2visit"   # "full" or "2visit"
+```
+
+# 1. Load model-ready data and reconstruct analysis sample
+
+The summary sheets in the workbook describe the analysis sample (subject counts, follow-up distributions). To build them we need the same data that `01_fit_models.Rmd` used for fitting.
+
+```{r}
+covariates <- NULL
+source("R/setup_analysis_sample.R")
+```
+
+# 2. Load fitted model objects
+
+```{r}
+model_rds_dir <- "../output/models"
+
+class1_fits <- read_rds(
+  file.path(
+    model_rds_dir,
+    paste0("pooled3_", model_tag, "_class1_fits.rds")
+  )
+)
+
+class2_fits <- read_rds(
+  file.path(
+    model_rds_dir,
+    paste0("pooled3_", model_tag, "_class2_fits.rds")
+  )
+)
+
+class1_fits_success <- class1_fits |>
+  filter(fit_success)
+
+class2_fits_success <- class2_fits |>
+  filter(fit_success)
+
+cat(
+  "Class 1:", nrow(class1_fits_success), "strata;",
+  "Class 2:", nrow(class2_fits_success), "strata\n"
+)
+```
+
+
+# 3. Define output settings
+
+```{r}
+index_ages_table1 <- seq(
+  50,
+  90,
+  by = 5
+)
+
+index_ages_table2 <- seq(
+  30,
+  85,
+  by = 5
+)
+
+change_years <- c(
+  5,
+  10,
+  15,
+  20
+)
+```
+
+# 4. Create table objects for Excel workbook
+
+The following code shows how we generate Table 1-2. For Table 3, the `write_table3_block()` in `workbook_writers.R` converts each Table 2 estimated change into a percentage using the corresponding Table 1 estimated mean. In the current implementation, the denominator is the estimated mean at the end age (`age + years_of_change`).
+
+## 4.1 Class 1 table objects
+
+```{r}
+class1_table1 <- class1_fits_success |>
+  mutate(
+    table1 = pmap(
+      list(
+        model,
+        data,
+        test,
+        sex_label
+      ),
+      ~make_pooled_class1_table1(  # defined in R/table_class1.R
+        model_x = ..1,
+        data_x = ..2,
+        test_x = ..3,
+        sex_x = ..4
+      )
+    )
+  ) |>
+  select(
+    model_version,
+    model_class,
+    n_obs,
+    n_subjects,
+    n_cohorts,
+    subject_random_slope_used,
+    random_effect_structure,
+    table1
+  ) |>
+  unnest(table1) |>
+  clean_names() |>
+  arrange(
+    test,
+    sex_label,
+    age
+  )
+
+class1_table1_wide <- format_pooled_class1_table1_wide(  # defined in R/table_class1.R
+  class1_table1
+)
+```
+
+```{r}
+class1_table2 <- class1_fits_success |>
+  mutate(
+    table2 = pmap(
+      list(
+        model,
+        data,
+        test,
+        sex_label
+      ),
+      ~ make_pooled_class1_table2(   # defined in R/table_class1.R
+        model_x = ..1,
+        data_x = ..2,
+        test_x = ..3,
+        sex_x = ..4
+      )
+    )
+  ) |>
+  select(
+    model_version,
+    model_class,
+    n_obs,
+    n_subjects,
+    n_cohorts,
+    subject_random_slope_used,
+    random_effect_structure,
+    table2
+  ) |>
+  unnest(table2) |>
+  clean_names() |>
+  arrange(
+    test,
+    sex_label,
+    age,
+    years_of_change
+  )
+
+class1_table2_wide <- format_pooled_class1_table2_wide(  # defined in R/table_class1.R
+  class1_table2
+)
+```
+
+## 4.2 Class 2 table objects
+
+```{r}
+class2_table1 <- class2_fits_success |>
+  mutate(
+    table1 = pmap(
+      list(
+        model,
+        data,
+        test,
+        sex_label
+      ),
+      ~ make_pooled_class2_table1(  # defined in R/table_class2.R
+        model_x = ..1,
+        data_x = ..2,
+        test_x = ..3,
+        sex_x = ..4
+      )
+    )
+  ) |>
+  select(
+    model_version,
+    model_class,
+    n_obs,
+    n_subjects,
+    n_cohorts,
+    subject_random_slope_used,
+    random_effect_structure,
+    table1
+  ) |>
+  unnest(table1) |>
+  clean_names() |>
+  arrange(
+    test,
+    sex_label,
+    baseline_age
+  )
+
+class2_table1_wide <- format_pooled_class2_table1_wide(  # defined in R/table_class2.R
+  class2_table1
+)
+```
+
+```{r}
+class2_table2 <- class2_fits_success |>
+  mutate(
+    table2 = pmap(
+      list(
+        model,
+        data,
+        test,
+        sex_label
+      ),
+      ~ make_pooled_class2_table2(  # defined in R/table_class2.R
+        model_x = ..1,
+        data_x = ..2,
+        test_x = ..3,
+        sex_x = ..4
+      )
+    )
+  ) |>
+  select(
+    model_version,
+    model_class,
+    n_obs,
+    n_subjects,
+    n_cohorts,
+    subject_random_slope_used,
+    random_effect_structure,
+    table2
+  ) |>
+  unnest(table2) |>
+  clean_names() |>
+  arrange(
+    test,
+    sex_label,
+    baseline_age,
+    years_of_change
+  )
+
+class2_table2_wide <- format_pooled_class2_table2_wide(  # defined in R/table_class2.R
+  class2_table2
+)
+```
+
+
+
+# 5. Workbook summary sheets
+
+## 5.1 Test dictionary sheet
+
+```{r}
+test_dictionary_sheet <- make_pooled_test_dictionary(
+  model_ready_analysis
+)
+
+test_dictionary_sheet |>
+  knitr::kable()
+```
+
+## 5.2 Pooled data summary sheet
+
+```{r}
+summary_sheets <- make_pooled_workbook_summary_sheets(
+  dat = model_ready_analysis,
+  test_dictionary_sheet = test_dictionary_sheet,
+  model_required_vars = model_required_vars
+)
+```
+
+```{r}
+data_summary_sheet <- summary_sheets$data_summary_sheet
+data_summary_sheet |>
+  knitr::kable(digits = 1) 
+```
+
+## 5.3 Pooled follow-up summary sheet
+
+```{r}
+followup_summary_sheet <- summary_sheets$followup_summary_sheet
+followup_summary_sheet |>
+  knitr::kable()
+```
+
+# 6. Write formatted Excel workbook
+
+Each sheet corresponds to one neuropsychological test. The workbook also includes summary sheets for the test dictionary, pooled data summary, and pooled follow-up summary.
+
+```{r}
+formatted_pooled_path <- file.path(
+  model_table_dir,
+  make_output_name(
+    paste0(
+      "xprize_pooled3_",
+      model_version,
+      "_formatted_tables_by_test"
+    ),
+    "xlsx"
+  )
+)
+
+write_all_pooled_test_workbook_with_summary( # is defined in R/workbook_writers.R
+  dat = model_ready_analysis,
+  class1_t1 = class1_table1_wide,
+  class1_t2 = class1_table2_wide,
+  class2_t1 = class2_table1_wide,
+  class2_t2 = class2_table2_wide,
+  test_dictionary_sheet = test_dictionary_sheet,
+  data_summary_sheet = data_summary_sheet,
+  followup_summary_sheet = followup_summary_sheet,
+  out_file = formatted_pooled_path
+)
+
+```

@@ -1,0 +1,393 @@
+---
+title: "Pooled 3-Cohort Neuropsych: Practice-Effect-Adjusted Spontaneous Reversal (All Tests)"
+author: "Minghui (Grace) Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# 0. Overview
+
+## 0.1 Analysis goal
+
+Repeated testing induces practice (retest) effects, which can look like spontaneous reversal of cognitive aging. This notebook re-runs the spontaneous-reversal classification for every neuropsych test after adjusting for practice, under three methods, for both Class 1 (age-as-time) and Class 2 (follow-up-as-time) models. The reversal algorithm itself is unchanged from codebooks 05/06.
+
+## 0.2 Practice-effect adjustment methods
+
+- **Method 1 (`m1_new_model`)** — refit each model with categorical prior test-taking count (`prior_count_f`: 0, 1, 2, or 3+) as main effect and derive practice-free reversal thresholds with `prior_count_f` held at "0". Observed change is not modified.
+
+- **Method 2 (`m2_subtract_practice_regression`)** — estimate the retest-versus-first-test score difference at the same attained age and subtract this estimated practice effect from the observed raw change before annualizing. Original Class 1 and Class 2 thresholds are retained.
+
+- **Method 3 (`m3_combined`)** — use the practice-free thresholds from Method 1 and the observed-change correction from Method 2.
+
+## 0.3 Outputs
+
+All outputs are saved in `../output/tables/pooled3_07_practice_effect_alltests/`:
+
+- Three Table 4 workbooks (M1/M2/M3).Each workbook contains both Class 1 and Class 2 results.
+- Each Table 4 sheet presents cumulative counts, cumulative percentages, and exclusive counts.
+- Three Method 2 regression-summary tables (EQ1/EQ2 coefficients, model summary, and predicted practice effect by attained age and sex).
+
+The original Table 4 workbooks are produced by codebooks 05/06 and are not regenerated here.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(openxlsx)
+
+source("R/_load_all.R")
+output_suffix <- format(Sys.Date(), "%m%d%Y")
+```
+
+# 1. Data and model setup
+
+## 1.1 Load project functions and data
+
+```{r sample}
+SAMPLE <- "2visit"; 
+covariates <- NULL
+source("R/setup_analysis_sample.R")
+
+model_tag       <- "crude_2visit"
+test_dictionary <- make_pooled_test_dictionary(model_ready_pool)
+
+out_dir <- "../output/tables/pooled3_07_practice_effect_alltests"
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## 1.2 Analysis sample
+
+We use the 2-visit repeated-measures sample and the Class 1 / Class 2 model fits from codebook 01. Observed baseline-to-first-follow-up change is model-independent, so the reversal sample is shared across classes. One `strata` row is one test x sex x model class: `orig_model` is the production fit and `obs` is the observed change every method classifies.
+
+```{r strata}
+md <- "../output/models"
+
+# Stack the fitted Class 1 and Class 2 strata and calculate observed change.
+strata <- bind_rows(
+  readRDS(file.path(md, "pooled3_crude_2visit_class1_fits.rds")),
+  readRDS(file.path(md, "pooled3_crude_2visit_class2_fits.rds"))
+) |>
+  filter(fit_success) |>
+  transmute(model_class, test, sex_label, data, orig_model = model,
+            obs = map(data, compute_obs_change))
+
+cat("Loaded", nrow(strata), "strata across", n_distinct(strata$test), "tests\n")
+```
+
+# 2. M1: adjust for number of prior test-takings
+
+## 2.1 Process
+
+We refit each stratum with categorical prior test-taking count (`prior_count_f`: 0, 1, 2, or 3+) entered as a main effect only. 
+Practice-free thresholds are evaluated with `prior_count_f` held at "0". M1 compares the raw observed change against these thresholds.
+
+```{r m1}
+
+# Refit the practice-adjusted models for all test-by-sex strata.
+
+strata <- strata |>
+  mutate(
+    # Refit one practice-aware model per test x sex x model-class stratum.
+    new_model = pmap(
+      list(data, test, model_class),
+      \(data, test_id, cls)
+        fit_practice_model(                         # R/practice_effect_alltests_functions.R
+          add_prior_count(                          # R/practice_effect_alltests_functions.R
+            mutate(data, test = test_id)            
+          ),
+          cls,
+          "factor"
+        )$model
+    ),
+
+    # Compute practice-free model-derived thresholds from the new model.
+    thr_new = pmap(
+      list(new_model, obs, model_class),
+      \(model, obs, cls)
+        if (cls == "class1") {
+          compute_model_change_new_class1_backward( # R/practice_effect_alltests_functions.R
+            model,
+            unique(obs$baseline_age)
+          )
+        } else {
+          compute_model_change_new_class2_backward( # R/practice_effect_alltests_functions.R
+            model,
+            unique(obs$baseline_age)
+          )
+        }
+    )
+  )
+
+```
+
+```{r}
+classified_m1 <- strata |>
+  transmute(
+    model_class,
+    result = pmap(
+      list(obs, thr_new, test, sex_label),
+      \(obs, thr, test, sex) {
+        
+        # M1 adjusts the model-derived threshold only.Therefore the participant-level observed change receives a 0 practice subtraction.
+        observed_practice_subtraction <- rep(0, nrow(obs))
+
+        classify_under_method(                      # R/practice_effect_alltests_functions.R, key function in this codebook
+          obs = obs,
+          model_changes = thr,
+          practice_gain_used = observed_practice_subtraction, # 0 practice subtraction
+          test_x = test,
+          sex_x = as.character(sex),
+          method_name = "m1_new_model"
+        )
+      }
+    )
+  ) |>
+  unnest(result)
+```
+
+
+
+## 2.2 Output
+
+```{r m1_output}
+m1_file <- file.path(out_dir, paste0("table4_M1_new_model_practicefree_thresholds_alltests_", output_suffix, ".xlsx"))
+write_table4_method_workbook(classified_m1, test_dictionary, m1_file)
+```
+
+# 3. M2: Regression-estimated practice-effect subtraction
+
+## 3.1 Notation and regression setup
+
+For each participant-test record, define:
+
+- `a`: baseline age, defined as the participant's age at the first observed administration of the test.
+- `h`: follow-up interval in years from baseline to the first valid follow-up.
+- `u = a + h`: attained age at the first follow-up visit.
+- `sex_label`: participant sex.
+
+M2 estimates the practice effect by comparing expected retest performance with expected first-test performance at the same attained age `u`.
+
+For each neuropsychological test, we fit two regression equations, pooling women and men but including sex and sex-by-age interaction terms.
+
+### EQ1: retest-performance equation
+
+EQ1 is fitted using the first-follow-up rows. These rows represent each participant's first retest for that neuropsychological test.
+
+The outcome is the first-follow-up score, `score_followup1`.
+
+The main age predictor is `age_fu1`, defined as:
+
+$$
+age\_fu1 = baseline\_age + followup\_years
+$$
+
+The primary EQ1 specification is:
+
+$$
+score\_followup1 \sim age\_fu1 + age\_fu1^2 + sex\_label + age\_fu1 \times sex\_label + age\_fu1^2 \times sex\_label
+$$
+
+Conceptually, EQ1 estimates expected retest performance at attained age `u`:
+
+$$
+pred\_{EQ1}(age\_fu1 = u, sex = sex_i)
+$$
+
+### EQ2: first-test-performance equation
+
+EQ2 is fitted using the baseline rows. These rows represent first-time test-taking for the test.
+
+The outcome is the baseline score, `score_baseline`.
+
+The main age predictor is `age_bl`, defined as:
+
+$$
+age\_bl = baseline\_age
+$$
+
+The primary EQ2 specification is:
+
+$$
+score\_baseline \sim age\_bl + age\_bl^2 + sex\_label + age\_bl \times sex\_label + age\_bl^2 \times sex\_label
+$$
+
+Conceptually, EQ2 estimates expected first-test performance at age `u`:
+
+$$
+pred\_{EQ2}(age\_bl = u, sex = sex_i)
+$$
+
+If the full interaction model is rank-deficient or fails to fit, the code steps down to simpler specifications in a fixed order: quadratic plus sex, linear plus sex, and then linear age-only.
+
+## 3.2 Participant-level practice-effect estimate
+
+For participant `i`, the attained age at first follow-up is:
+
+$$
+u_i = baseline\_age_i + followup\_years_i
+$$
+
+The raw practice-effect estimate is:
+
+$$
+practice\_effect\_raw_i =
+pred\_{EQ1}(age\_fu1 = u_i, sex = sex_i) -
+pred\_{EQ2}(age\_bl = u_i, sex = sex_i)
+$$
+
+Thus, EQ1 and EQ2 are evaluated at the same attained age `u_i`. 
+
+### practice-effect direction
+
+For higher-score-better tests, a positive practice-effect estimate means that predicted retest performance is better than predicted first-test performance at the same age. For Trails tests, where lower completion time is better, a negative estimate represents improvement. Therefore, before subtraction, the estimated practice effect is direction-filtered: <br>
+
+- only practice effects in the improvement direction are substracted,<br>
+
+- estimates in the non-improvement direction are set to zero.<br>
+
+## 3.3 Process
+
+M2 keeps the original production reversal thresholds from codebooks 05/06. It only modifies the participant-level observed change.
+
+For each participant-test record, M2 subtracts the estimated practice effect from the raw baseline-to-first-follow-up change before annualizing:
+
+$$
+adjusted\_change_i =
+(score\_followup1_i - score\_baseline_i) - practice\_effect\_used_i
+$$
+
+The adjusted change is then annualized:
+
+$$
+adjusted\_annual\_change_i =
+\frac{adjusted\_change_i}{followup\_years_i}
+$$
+
+This adjusted annualized change is then compared against the original production reversal thresholds in codebook 05,06 to classify spontaneous reversal.
+
+```{r m2}
+# Build the EQ1/EQ2 regression sample.
+# Since `obs` is the same for Class 1 and Class 2, keep one copy per test x sex.
+obs_all <- strata |>
+  distinct(test, sex_label, .keep_all = TRUE) |>
+  select(test, sex_label, obs) |>
+  unnest(obs)
+
+# Fit one EQ1/EQ2 regression pair per test, pooling women and men with sex terms.
+m2_fits <- map(split(obs_all, obs_all$test), fit_m2_regressions) # R/practice_effect_alltests_functions.R
+```
+
+```{r}
+# Calculate original threshold and practice-effect 
+strata <- strata |>
+  mutate(
+    
+    # Original production thresholds from the unadjusted Class 1 / Class 2 models.
+    thr_orig = pmap(list(orig_model, obs, model_class), \(model, obs, cls)
+      if (cls == "class1") {
+        compute_model_change_class1(model, unique(obs$baseline_age))     # R/spontaneous_reversal_functions.R
+      } else {
+        compute_model_change_class2(model, unique(obs$baseline_age))     # R/spontaneous_reversal_functions.R
+      }
+    ),
+    
+    # Participant-level practice-effect calculation at exact first-follow-up age:
+    # u_i = baseline_age_i + followup_years_i.
+    correction = pmap(list(obs, test, sex_label), \(obs, test, sex)
+      participant_m2_correction( # R/practice_effect_alltests_functions.R
+        obs,
+        m2_fits[[test]],
+        test,
+        as.character(sex)
+      )$practice_effect_used_raw
+    )
+  )
+
+```
+
+```{r}
+
+# Subtract the estimated practice effect, annualize the adjusted change, then classify reversal using the original threshold.
+classified_m2 <- strata |>
+  transmute(
+    model_class,
+
+    result = pmap(
+      list(obs, thr_orig, correction, test, sex_label),
+      \(obs, thr, corr, test, sex)
+        classify_under_method(     # R/practice_effect_alltests_functions.R
+          obs = obs,
+          model_changes = thr,
+          practice_gain_used = corr,  #calculated articipant-level practice-effect 
+          test_x = test,
+          sex_x = as.character(sex),
+          method_name = "m2_subtract_practice_regression"
+        )
+    )
+  ) |>
+  unnest(result)
+```
+
+## 3.4 Output
+
+Table 4 workbook plus three Method 2 regression-summary CSVs: the EQ1/EQ2 coefficient table, a compact model summary (which formula each equation used, full vs fallback), and the predicted practice effect by attained age (`attained_age = 50:95`, by sex). The practice effect depends only on attained age, so the prediction table is indexed by `attained_age` directly (no duplicated age_A x horizon rows).
+
+```{r m2_output}
+m2_file      <- file.path(out_dir, paste0("table4_M2_regression_practice_subtraction_alltests_", output_suffix, ".xlsx"))
+coef_file    <- file.path(out_dir, paste0("method2_eq1_eq2_regression_coefficients_", output_suffix, ".csv"))
+summary_file <- file.path(out_dir, paste0("method2_eq1_eq2_model_summary_", output_suffix, ".csv"))
+pred_file    <- file.path(out_dir, paste0("method2_practice_effect_predictions_by_attained_age_", output_suffix, ".csv"))
+
+write_table4_method_workbook(classified_m2, test_dictionary, m2_file)
+
+m2_coefficients <- imap_dfr(m2_fits, \(m2, test) m2_coefficient_table(m2, test, model_tag))
+m2_predictions  <- imap_dfr(m2_fits, \(m2, test) m2_prediction_by_attained_age(m2, test, model_tag))
+
+# one row per test x equation: which formula each EQ1/EQ2 used (full sex-interaction quadratic vs fallback)
+m2_model_summary <- m2_coefficients |>
+  distinct(model_version, test, equation, formula_used, n_obs)
+
+write_csv(m2_coefficients,  coef_file)
+write_csv(m2_model_summary, summary_file)
+write_csv(m2_predictions,   pred_file)
+```
+
+# 4. M3: combine M1 and M2
+
+## 4.1 Process
+
+M3 reuses the practice-free new-model thresholds from M1 and the regression correction from M2: the new-model thresholds with the practice effect subtracted from the observed change before annualizing.
+
+```{r m3}
+classified_m3 <- strata |>
+  transmute(model_class, result = pmap(list(obs, thr_new, correction, test, sex_label),
+    \(obs, thr, corr, test, sex)
+      classify_under_method(obs, thr, corr, test, as.character(sex), "m3_combined"))) |>
+  unnest(result)
+```
+
+## 4.2 Output
+
+```{r m3_output}
+m3_file <- file.path(out_dir, paste0("table4_M3_combined_alltests_", output_suffix, ".xlsx"))
+write_table4_method_workbook(classified_m3, test_dictionary, m3_file)
+```
+
+# 5. Output summary
+
+```{r summary}
+classified_all <- bind_rows(classified_m1, classified_m2, classified_m3)
+out_files <- c(m1_file, m2_file, m3_file, coef_file, summary_file, pred_file)
+
+# exactly the three methods, and all six deliverables written
+stopifnot(
+  setequal(unique(classified_all$method),
+           c("m1_new_model", "m2_subtract_practice_regression", "m3_combined")),
+  all(file.exists(out_files))
+)
+
+cat("Deliverables in ", out_dir, ":\n",
+    paste0(" - ", basename(out_files), collapse = "\n"), "\n", sep = "")
+```
+

@@ -1,0 +1,1177 @@
+test,xprize_subdomain,idtype_label,sex_label,age_measure_bin,n_obs,n_subjects
+coding_correct,Psychomotor,Original,Women,<30,0,0
+coding_correct,Psychomotor,Offspring,Women,<30,0,0
+coding_correct,Psychomotor,Gen3,Women,<30,26,26
+coding_correct,Psychomotor,Original,Women,30-34,0,0
+coding_correct,Psychomotor,Offspring,Women,30-34,0,0
+coding_correct,Psychomotor,Gen3,Women,30-34,68,68
+coding_correct,Psychomotor,Original,Women,35-39,0,0
+coding_correct,Psychomotor,Offspring,Women,35-39,0,0
+coding_correct,Psychomotor,Gen3,Women,35-39,151,151
+coding_correct,Psychomotor,Original,Women,40-44,0,0
+coding_correct,Psychomotor,Offspring,Women,40-44,0,0
+coding_correct,Psychomotor,Gen3,Women,40-44,266,264
+coding_correct,Psychomotor,Original,Women,45-49,0,0
+coding_correct,Psychomotor,Offspring,Women,45-49,2,2
+coding_correct,Psychomotor,Gen3,Women,45-49,351,348
+coding_correct,Psychomotor,Original,Women,50-54,0,0
+coding_correct,Psychomotor,Offspring,Women,50-54,7,7
+coding_correct,Psychomotor,Gen3,Women,50-54,382,380
+coding_correct,Psychomotor,Original,Women,55-59,0,0
+coding_correct,Psychomotor,Offspring,Women,55-59,38,35
+coding_correct,Psychomotor,Gen3,Women,55-59,328,327
+coding_correct,Psychomotor,Original,Women,60-64,0,0
+coding_correct,Psychomotor,Offspring,Women,60-64,121,116
+coding_correct,Psychomotor,Gen3,Women,60-64,198,196
+coding_correct,Psychomotor,Original,Women,65-69,0,0
+coding_correct,Psychomotor,Offspring,Women,65-69,259,248
+coding_correct,Psychomotor,Gen3,Women,65-69,70,68
+coding_correct,Psychomotor,Original,Women,70-74,0,0
+coding_correct,Psychomotor,Offspring,Women,70-74,284,261
+coding_correct,Psychomotor,Gen3,Women,70-74,16,16
+coding_correct,Psychomotor,Original,Women,75-79,0,0
+coding_correct,Psychomotor,Offspring,Women,75-79,210,197
+coding_correct,Psychomotor,Gen3,Women,75-79,4,4
+coding_correct,Psychomotor,Original,Women,80-84,0,0
+coding_correct,Psychomotor,Offspring,Women,80-84,151,138
+coding_correct,Psychomotor,Gen3,Women,80-84,1,1
+coding_correct,Psychomotor,Original,Women,85-89,1,1
+coding_correct,Psychomotor,Offspring,Women,85-89,84,74
+coding_correct,Psychomotor,Gen3,Women,85-89,1,1
+coding_correct,Psychomotor,Original,Women,>=90,34,29
+coding_correct,Psychomotor,Offspring,Women,>=90,33,25
+coding_correct,Psychomotor,Gen3,Women,>=90,0,0
+coding_correct,Psychomotor,Original,Men,<30,0,0
+coding_correct,Psychomotor,Offspring,Men,<30,0,0
+coding_correct,Psychomotor,Gen3,Men,<30,19,19
+coding_correct,Psychomotor,Original,Men,30-34,0,0
+coding_correct,Psychomotor,Offspring,Men,30-34,0,0
+coding_correct,Psychomotor,Gen3,Men,30-34,60,60
+coding_correct,Psychomotor,Original,Men,35-39,0,0
+coding_correct,Psychomotor,Offspring,Men,35-39,0,0
+coding_correct,Psychomotor,Gen3,Men,35-39,116,116
+coding_correct,Psychomotor,Original,Men,40-44,0,0
+coding_correct,Psychomotor,Offspring,Men,40-44,0,0
+coding_correct,Psychomotor,Gen3,Men,40-44,203,203
+coding_correct,Psychomotor,Original,Men,45-49,0,0
+coding_correct,Psychomotor,Offspring,Men,45-49,1,1
+coding_correct,Psychomotor,Gen3,Men,45-49,342,338
+coding_correct,Psychomotor,Original,Men,50-54,0,0
+coding_correct,Psychomotor,Offspring,Men,50-54,6,6
+coding_correct,Psychomotor,Gen3,Men,50-54,363,359
+coding_correct,Psychomotor,Original,Men,55-59,0,0
+coding_correct,Psychomotor,Offspring,Men,55-59,37,36
+coding_correct,Psychomotor,Gen3,Men,55-59,306,301
+coding_correct,Psychomotor,Original,Men,60-64,0,0
+coding_correct,Psychomotor,Offspring,Men,60-64,81,78
+coding_correct,Psychomotor,Gen3,Men,60-64,194,189
+coding_correct,Psychomotor,Original,Men,65-69,0,0
+coding_correct,Psychomotor,Offspring,Men,65-69,177,169
+coding_correct,Psychomotor,Gen3,Men,65-69,71,66
+coding_correct,Psychomotor,Original,Men,70-74,0,0
+coding_correct,Psychomotor,Offspring,Men,70-74,242,228
+coding_correct,Psychomotor,Gen3,Men,70-74,19,18
+coding_correct,Psychomotor,Original,Men,75-79,0,0
+coding_correct,Psychomotor,Offspring,Men,75-79,185,173
+coding_correct,Psychomotor,Gen3,Men,75-79,4,4
+coding_correct,Psychomotor,Original,Men,80-84,0,0
+coding_correct,Psychomotor,Offspring,Men,80-84,113,97
+coding_correct,Psychomotor,Gen3,Men,80-84,0,0
+coding_correct,Psychomotor,Original,Men,85-89,0,0
+coding_correct,Psychomotor,Offspring,Men,85-89,70,62
+coding_correct,Psychomotor,Gen3,Men,85-89,0,0
+coding_correct,Psychomotor,Original,Men,>=90,9,7
+coding_correct,Psychomotor,Offspring,Men,>=90,14,13
+coding_correct,Psychomotor,Gen3,Men,>=90,0,0
+dsb,Executive Function & Processing,Original,Women,<30,0,0
+dsb,Executive Function & Processing,Offspring,Women,<30,0,0
+dsb,Executive Function & Processing,Gen3,Women,<30,26,26
+dsb,Executive Function & Processing,Original,Women,30-34,0,0
+dsb,Executive Function & Processing,Offspring,Women,30-34,0,0
+dsb,Executive Function & Processing,Gen3,Women,30-34,76,76
+dsb,Executive Function & Processing,Original,Women,35-39,0,0
+dsb,Executive Function & Processing,Offspring,Women,35-39,0,0
+dsb,Executive Function & Processing,Gen3,Women,35-39,156,156
+dsb,Executive Function & Processing,Original,Women,40-44,0,0
+dsb,Executive Function & Processing,Offspring,Women,40-44,5,5
+dsb,Executive Function & Processing,Gen3,Women,40-44,272,270
+dsb,Executive Function & Processing,Original,Women,45-49,0,0
+dsb,Executive Function & Processing,Offspring,Women,45-49,17,15
+dsb,Executive Function & Processing,Gen3,Women,45-49,367,365
+dsb,Executive Function & Processing,Original,Women,50-54,0,0
+dsb,Executive Function & Processing,Offspring,Women,50-54,94,79
+dsb,Executive Function & Processing,Gen3,Women,50-54,394,393
+dsb,Executive Function & Processing,Original,Women,55-59,0,0
+dsb,Executive Function & Processing,Offspring,Women,55-59,227,205
+dsb,Executive Function & Processing,Gen3,Women,55-59,341,340
+dsb,Executive Function & Processing,Original,Women,60-64,5,5
+dsb,Executive Function & Processing,Offspring,Women,60-64,402,368
+dsb,Executive Function & Processing,Gen3,Women,60-64,208,205
+dsb,Executive Function & Processing,Original,Women,65-69,45,44
+dsb,Executive Function & Processing,Offspring,Women,65-69,543,491
+dsb,Executive Function & Processing,Gen3,Women,65-69,76,74
+dsb,Executive Function & Processing,Original,Women,70-74,93,87
+dsb,Executive Function & Processing,Offspring,Women,70-74,547,470
+dsb,Executive Function & Processing,Gen3,Women,70-74,17,17
+dsb,Executive Function & Processing,Original,Women,75-79,192,162
+dsb,Executive Function & Processing,Offspring,Women,75-79,539,415
+dsb,Executive Function & Processing,Gen3,Women,75-79,4,4
+dsb,Executive Function & Processing,Original,Women,80-84,537,330
+dsb,Executive Function & Processing,Offspring,Women,80-84,375,298
+dsb,Executive Function & Processing,Gen3,Women,80-84,1,1
+dsb,Executive Function & Processing,Original,Women,85-89,719,393
+dsb,Executive Function & Processing,Offspring,Women,85-89,191,157
+dsb,Executive Function & Processing,Gen3,Women,85-89,1,1
+dsb,Executive Function & Processing,Original,Women,>=90,562,289
+dsb,Executive Function & Processing,Offspring,Women,>=90,74,55
+dsb,Executive Function & Processing,Gen3,Women,>=90,0,0
+dsb,Executive Function & Processing,Original,Men,<30,0,0
+dsb,Executive Function & Processing,Offspring,Men,<30,0,0
+dsb,Executive Function & Processing,Gen3,Men,<30,18,18
+dsb,Executive Function & Processing,Original,Men,30-34,0,0
+dsb,Executive Function & Processing,Offspring,Men,30-34,0,0
+dsb,Executive Function & Processing,Gen3,Men,30-34,60,60
+dsb,Executive Function & Processing,Original,Men,35-39,0,0
+dsb,Executive Function & Processing,Offspring,Men,35-39,0,0
+dsb,Executive Function & Processing,Gen3,Men,35-39,119,119
+dsb,Executive Function & Processing,Original,Men,40-44,0,0
+dsb,Executive Function & Processing,Offspring,Men,40-44,4,4
+dsb,Executive Function & Processing,Gen3,Men,40-44,206,206
+dsb,Executive Function & Processing,Original,Men,45-49,0,0
+dsb,Executive Function & Processing,Offspring,Men,45-49,23,22
+dsb,Executive Function & Processing,Gen3,Men,45-49,350,346
+dsb,Executive Function & Processing,Original,Men,50-54,0,0
+dsb,Executive Function & Processing,Offspring,Men,50-54,58,55
+dsb,Executive Function & Processing,Gen3,Men,50-54,362,358
+dsb,Executive Function & Processing,Original,Men,55-59,0,0
+dsb,Executive Function & Processing,Offspring,Men,55-59,170,157
+dsb,Executive Function & Processing,Gen3,Men,55-59,320,314
+dsb,Executive Function & Processing,Original,Men,60-64,2,2
+dsb,Executive Function & Processing,Offspring,Men,60-64,338,303
+dsb,Executive Function & Processing,Gen3,Men,60-64,203,198
+dsb,Executive Function & Processing,Original,Men,65-69,59,57
+dsb,Executive Function & Processing,Offspring,Men,65-69,435,386
+dsb,Executive Function & Processing,Gen3,Men,65-69,74,67
+dsb,Executive Function & Processing,Original,Men,70-74,124,115
+dsb,Executive Function & Processing,Offspring,Men,70-74,474,422
+dsb,Executive Function & Processing,Gen3,Men,70-74,22,20
+dsb,Executive Function & Processing,Original,Men,75-79,170,135
+dsb,Executive Function & Processing,Offspring,Men,75-79,455,370
+dsb,Executive Function & Processing,Gen3,Men,75-79,4,4
+dsb,Executive Function & Processing,Original,Men,80-84,316,202
+dsb,Executive Function & Processing,Offspring,Men,80-84,305,228
+dsb,Executive Function & Processing,Gen3,Men,80-84,0,0
+dsb,Executive Function & Processing,Original,Men,85-89,343,169
+dsb,Executive Function & Processing,Offspring,Men,85-89,136,109
+dsb,Executive Function & Processing,Gen3,Men,85-89,0,0
+dsb,Executive Function & Processing,Original,Men,>=90,188,98
+dsb,Executive Function & Processing,Offspring,Men,>=90,30,23
+dsb,Executive Function & Processing,Gen3,Men,>=90,0,0
+dsf,Attention,Original,Women,<30,0,0
+dsf,Attention,Offspring,Women,<30,0,0
+dsf,Attention,Gen3,Women,<30,26,26
+dsf,Attention,Original,Women,30-34,0,0
+dsf,Attention,Offspring,Women,30-34,0,0
+dsf,Attention,Gen3,Women,30-34,76,76
+dsf,Attention,Original,Women,35-39,0,0
+dsf,Attention,Offspring,Women,35-39,0,0
+dsf,Attention,Gen3,Women,35-39,158,158
+dsf,Attention,Original,Women,40-44,0,0
+dsf,Attention,Offspring,Women,40-44,6,6
+dsf,Attention,Gen3,Women,40-44,274,272
+dsf,Attention,Original,Women,45-49,0,0
+dsf,Attention,Offspring,Women,45-49,16,14
+dsf,Attention,Gen3,Women,45-49,369,366
+dsf,Attention,Original,Women,50-54,0,0
+dsf,Attention,Offspring,Women,50-54,94,80
+dsf,Attention,Gen3,Women,50-54,398,396
+dsf,Attention,Original,Women,55-59,0,0
+dsf,Attention,Offspring,Women,55-59,235,212
+dsf,Attention,Gen3,Women,55-59,342,341
+dsf,Attention,Original,Women,60-64,6,6
+dsf,Attention,Offspring,Women,60-64,409,372
+dsf,Attention,Gen3,Women,60-64,206,203
+dsf,Attention,Original,Women,65-69,47,46
+dsf,Attention,Offspring,Women,65-69,554,501
+dsf,Attention,Gen3,Women,65-69,76,74
+dsf,Attention,Original,Women,70-74,93,87
+dsf,Attention,Offspring,Women,70-74,550,473
+dsf,Attention,Gen3,Women,70-74,17,17
+dsf,Attention,Original,Women,75-79,195,165
+dsf,Attention,Offspring,Women,75-79,540,416
+dsf,Attention,Gen3,Women,75-79,4,4
+dsf,Attention,Original,Women,80-84,544,332
+dsf,Attention,Offspring,Women,80-84,380,299
+dsf,Attention,Gen3,Women,80-84,1,1
+dsf,Attention,Original,Women,85-89,732,402
+dsf,Attention,Offspring,Women,85-89,196,161
+dsf,Attention,Gen3,Women,85-89,1,1
+dsf,Attention,Original,Women,>=90,575,294
+dsf,Attention,Offspring,Women,>=90,75,56
+dsf,Attention,Gen3,Women,>=90,0,0
+dsf,Attention,Original,Men,<30,0,0
+dsf,Attention,Offspring,Men,<30,0,0
+dsf,Attention,Gen3,Men,<30,18,18
+dsf,Attention,Original,Men,30-34,0,0
+dsf,Attention,Offspring,Men,30-34,0,0
+dsf,Attention,Gen3,Men,30-34,61,61
+dsf,Attention,Original,Men,35-39,0,0
+dsf,Attention,Offspring,Men,35-39,0,0
+dsf,Attention,Gen3,Men,35-39,119,119
+dsf,Attention,Original,Men,40-44,0,0
+dsf,Attention,Offspring,Men,40-44,4,4
+dsf,Attention,Gen3,Men,40-44,205,205
+dsf,Attention,Original,Men,45-49,0,0
+dsf,Attention,Offspring,Men,45-49,24,23
+dsf,Attention,Gen3,Men,45-49,351,347
+dsf,Attention,Original,Men,50-54,0,0
+dsf,Attention,Offspring,Men,50-54,57,55
+dsf,Attention,Gen3,Men,50-54,363,359
+dsf,Attention,Original,Men,55-59,0,0
+dsf,Attention,Offspring,Men,55-59,176,163
+dsf,Attention,Gen3,Men,55-59,322,316
+dsf,Attention,Original,Men,60-64,3,3
+dsf,Attention,Offspring,Men,60-64,345,308
+dsf,Attention,Gen3,Men,60-64,204,199
+dsf,Attention,Original,Men,65-69,59,57
+dsf,Attention,Offspring,Men,65-69,442,391
+dsf,Attention,Gen3,Men,65-69,76,69
+dsf,Attention,Original,Men,70-74,124,115
+dsf,Attention,Offspring,Men,70-74,487,434
+dsf,Attention,Gen3,Men,70-74,22,20
+dsf,Attention,Original,Men,75-79,172,137
+dsf,Attention,Offspring,Men,75-79,462,372
+dsf,Attention,Gen3,Men,75-79,4,4
+dsf,Attention,Original,Men,80-84,319,202
+dsf,Attention,Offspring,Men,80-84,309,233
+dsf,Attention,Gen3,Men,80-84,0,0
+dsf,Attention,Original,Men,85-89,346,172
+dsf,Attention,Offspring,Men,85-89,141,113
+dsf,Attention,Gen3,Men,85-89,0,0
+dsf,Attention,Original,Men,>=90,194,98
+dsf,Attention,Offspring,Men,>=90,31,24
+dsf,Attention,Gen3,Men,>=90,0,0
+lmd,Memory,Original,Women,<30,0,0
+lmd,Memory,Offspring,Women,<30,0,0
+lmd,Memory,Gen3,Women,<30,25,25
+lmd,Memory,Original,Women,30-34,0,0
+lmd,Memory,Offspring,Women,30-34,1,1
+lmd,Memory,Gen3,Women,30-34,75,75
+lmd,Memory,Original,Women,35-39,0,0
+lmd,Memory,Offspring,Women,35-39,9,8
+lmd,Memory,Gen3,Women,35-39,157,157
+lmd,Memory,Original,Women,40-44,0,0
+lmd,Memory,Offspring,Women,40-44,29,29
+lmd,Memory,Gen3,Women,40-44,273,271
+lmd,Memory,Original,Women,45-49,0,0
+lmd,Memory,Offspring,Women,45-49,114,108
+lmd,Memory,Gen3,Women,45-49,368,365
+lmd,Memory,Original,Women,50-54,0,0
+lmd,Memory,Offspring,Women,50-54,336,305
+lmd,Memory,Gen3,Women,50-54,397,395
+lmd,Memory,Original,Women,55-59,0,0
+lmd,Memory,Offspring,Women,55-59,528,485
+lmd,Memory,Gen3,Women,55-59,340,339
+lmd,Memory,Original,Women,60-64,5,5
+lmd,Memory,Offspring,Women,60-64,643,582
+lmd,Memory,Gen3,Women,60-64,209,206
+lmd,Memory,Original,Women,65-69,46,45
+lmd,Memory,Offspring,Women,65-69,785,705
+lmd,Memory,Gen3,Women,65-69,77,75
+lmd,Memory,Original,Women,70-74,93,87
+lmd,Memory,Offspring,Women,70-74,718,627
+lmd,Memory,Gen3,Women,70-74,16,16
+lmd,Memory,Original,Women,75-79,197,166
+lmd,Memory,Offspring,Women,75-79,641,502
+lmd,Memory,Gen3,Women,75-79,4,4
+lmd,Memory,Original,Women,80-84,555,340
+lmd,Memory,Offspring,Women,80-84,411,317
+lmd,Memory,Gen3,Women,80-84,1,1
+lmd,Memory,Original,Women,85-89,742,401
+lmd,Memory,Offspring,Women,85-89,202,165
+lmd,Memory,Gen3,Women,85-89,1,1
+lmd,Memory,Original,Women,>=90,567,292
+lmd,Memory,Offspring,Women,>=90,73,52
+lmd,Memory,Gen3,Women,>=90,0,0
+lmd,Memory,Original,Men,<30,0,0
+lmd,Memory,Offspring,Men,<30,0,0
+lmd,Memory,Gen3,Men,<30,19,19
+lmd,Memory,Original,Men,30-34,0,0
+lmd,Memory,Offspring,Men,30-34,0,0
+lmd,Memory,Gen3,Men,30-34,61,61
+lmd,Memory,Original,Men,35-39,0,0
+lmd,Memory,Offspring,Men,35-39,6,6
+lmd,Memory,Gen3,Men,35-39,119,119
+lmd,Memory,Original,Men,40-44,0,0
+lmd,Memory,Offspring,Men,40-44,32,32
+lmd,Memory,Gen3,Men,40-44,204,204
+lmd,Memory,Original,Men,45-49,0,0
+lmd,Memory,Offspring,Men,45-49,104,101
+lmd,Memory,Gen3,Men,45-49,351,347
+lmd,Memory,Original,Men,50-54,0,0
+lmd,Memory,Offspring,Men,50-54,242,234
+lmd,Memory,Gen3,Men,50-54,365,361
+lmd,Memory,Original,Men,55-59,0,0
+lmd,Memory,Offspring,Men,55-59,411,379
+lmd,Memory,Gen3,Men,55-59,321,315
+lmd,Memory,Original,Men,60-64,2,2
+lmd,Memory,Offspring,Men,60-64,569,519
+lmd,Memory,Gen3,Men,60-64,205,199
+lmd,Memory,Original,Men,65-69,60,58
+lmd,Memory,Offspring,Men,65-69,638,565
+lmd,Memory,Gen3,Men,65-69,76,69
+lmd,Memory,Original,Men,70-74,124,115
+lmd,Memory,Offspring,Men,70-74,645,579
+lmd,Memory,Gen3,Men,70-74,21,19
+lmd,Memory,Original,Men,75-79,169,135
+lmd,Memory,Offspring,Men,75-79,552,451
+lmd,Memory,Gen3,Men,75-79,4,4
+lmd,Memory,Original,Men,80-84,327,208
+lmd,Memory,Offspring,Men,80-84,336,251
+lmd,Memory,Gen3,Men,80-84,0,0
+lmd,Memory,Original,Men,85-89,347,169
+lmd,Memory,Offspring,Men,85-89,143,113
+lmd,Memory,Gen3,Men,85-89,0,0
+lmd,Memory,Original,Men,>=90,195,100
+lmd,Memory,Offspring,Men,>=90,30,23
+lmd,Memory,Gen3,Men,>=90,0,0
+lmi,Memory,Original,Women,<30,0,0
+lmi,Memory,Offspring,Women,<30,0,0
+lmi,Memory,Gen3,Women,<30,26,26
+lmi,Memory,Original,Women,30-34,0,0
+lmi,Memory,Offspring,Women,30-34,1,1
+lmi,Memory,Gen3,Women,30-34,74,74
+lmi,Memory,Original,Women,35-39,0,0
+lmi,Memory,Offspring,Women,35-39,9,8
+lmi,Memory,Gen3,Women,35-39,157,157
+lmi,Memory,Original,Women,40-44,0,0
+lmi,Memory,Offspring,Women,40-44,29,29
+lmi,Memory,Gen3,Women,40-44,272,270
+lmi,Memory,Original,Women,45-49,0,0
+lmi,Memory,Offspring,Women,45-49,114,108
+lmi,Memory,Gen3,Women,45-49,367,364
+lmi,Memory,Original,Women,50-54,0,0
+lmi,Memory,Offspring,Women,50-54,336,305
+lmi,Memory,Gen3,Women,50-54,397,395
+lmi,Memory,Original,Women,55-59,0,0
+lmi,Memory,Offspring,Women,55-59,531,487
+lmi,Memory,Gen3,Women,55-59,340,339
+lmi,Memory,Original,Women,60-64,5,5
+lmi,Memory,Offspring,Women,60-64,643,582
+lmi,Memory,Gen3,Women,60-64,208,205
+lmi,Memory,Original,Women,65-69,47,46
+lmi,Memory,Offspring,Women,65-69,786,705
+lmi,Memory,Gen3,Women,65-69,76,74
+lmi,Memory,Original,Women,70-74,96,89
+lmi,Memory,Offspring,Women,70-74,720,629
+lmi,Memory,Gen3,Women,70-74,16,16
+lmi,Memory,Original,Women,75-79,198,166
+lmi,Memory,Offspring,Women,75-79,650,510
+lmi,Memory,Gen3,Women,75-79,4,4
+lmi,Memory,Original,Women,80-84,560,343
+lmi,Memory,Offspring,Women,80-84,413,318
+lmi,Memory,Gen3,Women,80-84,1,1
+lmi,Memory,Original,Women,85-89,759,412
+lmi,Memory,Offspring,Women,85-89,204,166
+lmi,Memory,Gen3,Women,85-89,1,1
+lmi,Memory,Original,Women,>=90,585,297
+lmi,Memory,Offspring,Women,>=90,77,55
+lmi,Memory,Gen3,Women,>=90,0,0
+lmi,Memory,Original,Men,<30,0,0
+lmi,Memory,Offspring,Men,<30,0,0
+lmi,Memory,Gen3,Men,<30,18,18
+lmi,Memory,Original,Men,30-34,0,0
+lmi,Memory,Offspring,Men,30-34,0,0
+lmi,Memory,Gen3,Men,30-34,61,61
+lmi,Memory,Original,Men,35-39,0,0
+lmi,Memory,Offspring,Men,35-39,6,6
+lmi,Memory,Gen3,Men,35-39,119,119
+lmi,Memory,Original,Men,40-44,0,0
+lmi,Memory,Offspring,Men,40-44,32,32
+lmi,Memory,Gen3,Men,40-44,204,204
+lmi,Memory,Original,Men,45-49,0,0
+lmi,Memory,Offspring,Men,45-49,104,101
+lmi,Memory,Gen3,Men,45-49,349,345
+lmi,Memory,Original,Men,50-54,0,0
+lmi,Memory,Offspring,Men,50-54,243,235
+lmi,Memory,Gen3,Men,50-54,364,360
+lmi,Memory,Original,Men,55-59,0,0
+lmi,Memory,Offspring,Men,55-59,411,379
+lmi,Memory,Gen3,Men,55-59,319,313
+lmi,Memory,Original,Men,60-64,3,3
+lmi,Memory,Offspring,Men,60-64,569,519
+lmi,Memory,Gen3,Men,60-64,205,199
+lmi,Memory,Original,Men,65-69,60,58
+lmi,Memory,Offspring,Men,65-69,638,565
+lmi,Memory,Gen3,Men,65-69,77,70
+lmi,Memory,Original,Men,70-74,124,115
+lmi,Memory,Offspring,Men,70-74,646,580
+lmi,Memory,Gen3,Men,70-74,21,19
+lmi,Memory,Original,Men,75-79,174,138
+lmi,Memory,Offspring,Men,75-79,554,451
+lmi,Memory,Gen3,Men,75-79,4,4
+lmi,Memory,Original,Men,80-84,331,209
+lmi,Memory,Offspring,Men,80-84,342,253
+lmi,Memory,Gen3,Men,80-84,0,0
+lmi,Memory,Original,Men,85-89,357,177
+lmi,Memory,Offspring,Men,85-89,145,114
+lmi,Memory,Gen3,Men,85-89,0,0
+lmi,Memory,Original,Men,>=90,199,102
+lmi,Memory,Offspring,Men,>=90,31,24
+lmi,Memory,Gen3,Men,>=90,0,0
+lmr,Memory,Original,Women,<30,0,0
+lmr,Memory,Offspring,Women,<30,0,0
+lmr,Memory,Gen3,Women,<30,25,25
+lmr,Memory,Original,Women,30-34,0,0
+lmr,Memory,Offspring,Women,30-34,1,1
+lmr,Memory,Gen3,Women,30-34,76,76
+lmr,Memory,Original,Women,35-39,0,0
+lmr,Memory,Offspring,Women,35-39,9,8
+lmr,Memory,Gen3,Women,35-39,154,154
+lmr,Memory,Original,Women,40-44,0,0
+lmr,Memory,Offspring,Women,40-44,29,29
+lmr,Memory,Gen3,Women,40-44,264,262
+lmr,Memory,Original,Women,45-49,0,0
+lmr,Memory,Offspring,Women,45-49,113,107
+lmr,Memory,Gen3,Women,45-49,343,340
+lmr,Memory,Original,Women,50-54,0,0
+lmr,Memory,Offspring,Women,50-54,334,305
+lmr,Memory,Gen3,Women,50-54,374,373
+lmr,Memory,Original,Women,55-59,0,0
+lmr,Memory,Offspring,Women,55-59,525,483
+lmr,Memory,Gen3,Women,55-59,309,308
+lmr,Memory,Original,Women,60-64,0,0
+lmr,Memory,Offspring,Women,60-64,638,579
+lmr,Memory,Gen3,Women,60-64,193,191
+lmr,Memory,Original,Women,65-69,0,0
+lmr,Memory,Offspring,Women,65-69,774,694
+lmr,Memory,Gen3,Women,65-69,70,68
+lmr,Memory,Original,Women,70-74,0,0
+lmr,Memory,Offspring,Women,70-74,700,613
+lmr,Memory,Gen3,Women,70-74,13,13
+lmr,Memory,Original,Women,75-79,8,8
+lmr,Memory,Offspring,Women,75-79,626,497
+lmr,Memory,Gen3,Women,75-79,4,4
+lmr,Memory,Original,Women,80-84,315,156
+lmr,Memory,Offspring,Women,80-84,411,317
+lmr,Memory,Gen3,Women,80-84,1,1
+lmr,Memory,Original,Women,85-89,479,230
+lmr,Memory,Offspring,Women,85-89,194,159
+lmr,Memory,Gen3,Women,85-89,1,1
+lmr,Memory,Original,Women,>=90,402,201
+lmr,Memory,Offspring,Women,>=90,71,53
+lmr,Memory,Gen3,Women,>=90,0,0
+lmr,Memory,Original,Men,<30,0,0
+lmr,Memory,Offspring,Men,<30,0,0
+lmr,Memory,Gen3,Men,<30,19,19
+lmr,Memory,Original,Men,30-34,0,0
+lmr,Memory,Offspring,Men,30-34,0,0
+lmr,Memory,Gen3,Men,30-34,59,59
+lmr,Memory,Original,Men,35-39,0,0
+lmr,Memory,Offspring,Men,35-39,6,6
+lmr,Memory,Gen3,Men,35-39,114,114
+lmr,Memory,Original,Men,40-44,0,0
+lmr,Memory,Offspring,Men,40-44,32,32
+lmr,Memory,Gen3,Men,40-44,196,196
+lmr,Memory,Original,Men,45-49,0,0
+lmr,Memory,Offspring,Men,45-49,102,99
+lmr,Memory,Gen3,Men,45-49,323,322
+lmr,Memory,Original,Men,50-54,0,0
+lmr,Memory,Offspring,Men,50-54,241,234
+lmr,Memory,Gen3,Men,50-54,322,319
+lmr,Memory,Original,Men,55-59,0,0
+lmr,Memory,Offspring,Men,55-59,409,377
+lmr,Memory,Gen3,Men,55-59,293,289
+lmr,Memory,Original,Men,60-64,0,0
+lmr,Memory,Offspring,Men,60-64,553,507
+lmr,Memory,Gen3,Men,60-64,183,179
+lmr,Memory,Original,Men,65-69,0,0
+lmr,Memory,Offspring,Men,65-69,624,556
+lmr,Memory,Gen3,Men,65-69,67,62
+lmr,Memory,Original,Men,70-74,0,0
+lmr,Memory,Offspring,Men,70-74,618,558
+lmr,Memory,Gen3,Men,70-74,17,16
+lmr,Memory,Original,Men,75-79,1,1
+lmr,Memory,Offspring,Men,75-79,541,442
+lmr,Memory,Gen3,Men,75-79,4,4
+lmr,Memory,Original,Men,80-84,171,93
+lmr,Memory,Offspring,Men,80-84,332,248
+lmr,Memory,Gen3,Men,80-84,0,0
+lmr,Memory,Original,Men,85-89,260,109
+lmr,Memory,Offspring,Men,85-89,143,114
+lmr,Memory,Gen3,Men,85-89,0,0
+lmr,Memory,Original,Men,>=90,163,79
+lmr,Memory,Offspring,Men,>=90,30,23
+lmr,Memory,Gen3,Men,>=90,0,0
+pasd,Memory,Original,Women,<30,0,0
+pasd,Memory,Offspring,Women,<30,0,0
+pasd,Memory,Gen3,Women,<30,25,25
+pasd,Memory,Original,Women,30-34,0,0
+pasd,Memory,Offspring,Women,30-34,1,1
+pasd,Memory,Gen3,Women,30-34,76,76
+pasd,Memory,Original,Women,35-39,0,0
+pasd,Memory,Offspring,Women,35-39,9,8
+pasd,Memory,Gen3,Women,35-39,155,155
+pasd,Memory,Original,Women,40-44,0,0
+pasd,Memory,Offspring,Women,40-44,29,29
+pasd,Memory,Gen3,Women,40-44,262,260
+pasd,Memory,Original,Women,45-49,0,0
+pasd,Memory,Offspring,Women,45-49,113,107
+pasd,Memory,Gen3,Women,45-49,334,332
+pasd,Memory,Original,Women,50-54,0,0
+pasd,Memory,Offspring,Women,50-54,333,304
+pasd,Memory,Gen3,Women,50-54,369,368
+pasd,Memory,Original,Women,55-59,0,0
+pasd,Memory,Offspring,Women,55-59,525,482
+pasd,Memory,Gen3,Women,55-59,305,304
+pasd,Memory,Original,Women,60-64,0,0
+pasd,Memory,Offspring,Women,60-64,635,576
+pasd,Memory,Gen3,Women,60-64,188,186
+pasd,Memory,Original,Women,65-69,0,0
+pasd,Memory,Offspring,Women,65-69,768,689
+pasd,Memory,Gen3,Women,65-69,69,67
+pasd,Memory,Original,Women,70-74,0,0
+pasd,Memory,Offspring,Women,70-74,692,609
+pasd,Memory,Gen3,Women,70-74,14,14
+pasd,Memory,Original,Women,75-79,8,8
+pasd,Memory,Offspring,Women,75-79,608,485
+pasd,Memory,Gen3,Women,75-79,4,4
+pasd,Memory,Original,Women,80-84,307,153
+pasd,Memory,Offspring,Women,80-84,396,309
+pasd,Memory,Gen3,Women,80-84,1,1
+pasd,Memory,Original,Women,85-89,461,225
+pasd,Memory,Offspring,Women,85-89,182,148
+pasd,Memory,Gen3,Women,85-89,1,1
+pasd,Memory,Original,Women,>=90,375,192
+pasd,Memory,Offspring,Women,>=90,66,50
+pasd,Memory,Gen3,Women,>=90,0,0
+pasd,Memory,Original,Men,<30,0,0
+pasd,Memory,Offspring,Men,<30,0,0
+pasd,Memory,Gen3,Men,<30,19,19
+pasd,Memory,Original,Men,30-34,0,0
+pasd,Memory,Offspring,Men,30-34,0,0
+pasd,Memory,Gen3,Men,30-34,58,58
+pasd,Memory,Original,Men,35-39,0,0
+pasd,Memory,Offspring,Men,35-39,6,6
+pasd,Memory,Gen3,Men,35-39,115,115
+pasd,Memory,Original,Men,40-44,0,0
+pasd,Memory,Offspring,Men,40-44,32,32
+pasd,Memory,Gen3,Men,40-44,191,191
+pasd,Memory,Original,Men,45-49,0,0
+pasd,Memory,Offspring,Men,45-49,101,98
+pasd,Memory,Gen3,Men,45-49,324,323
+pasd,Memory,Original,Men,50-54,0,0
+pasd,Memory,Offspring,Men,50-54,240,233
+pasd,Memory,Gen3,Men,50-54,321,318
+pasd,Memory,Original,Men,55-59,0,0
+pasd,Memory,Offspring,Men,55-59,405,375
+pasd,Memory,Gen3,Men,55-59,291,288
+pasd,Memory,Original,Men,60-64,0,0
+pasd,Memory,Offspring,Men,60-64,549,505
+pasd,Memory,Gen3,Men,60-64,182,179
+pasd,Memory,Original,Men,65-69,0,0
+pasd,Memory,Offspring,Men,65-69,621,553
+pasd,Memory,Gen3,Men,65-69,68,62
+pasd,Memory,Original,Men,70-74,0,0
+pasd,Memory,Offspring,Men,70-74,614,558
+pasd,Memory,Gen3,Men,70-74,17,16
+pasd,Memory,Original,Men,75-79,1,1
+pasd,Memory,Offspring,Men,75-79,529,432
+pasd,Memory,Gen3,Men,75-79,4,4
+pasd,Memory,Original,Men,80-84,168,93
+pasd,Memory,Offspring,Men,80-84,326,244
+pasd,Memory,Gen3,Men,80-84,0,0
+pasd,Memory,Original,Men,85-89,254,108
+pasd,Memory,Offspring,Men,85-89,133,107
+pasd,Memory,Gen3,Men,85-89,0,0
+pasd,Memory,Original,Men,>=90,147,75
+pasd,Memory,Offspring,Men,>=90,26,21
+pasd,Memory,Gen3,Men,>=90,0,0
+pasi,Memory,Original,Women,<30,0,0
+pasi,Memory,Offspring,Women,<30,0,0
+pasi,Memory,Gen3,Women,<30,26,26
+pasi,Memory,Original,Women,30-34,0,0
+pasi,Memory,Offspring,Women,30-34,1,1
+pasi,Memory,Gen3,Women,30-34,74,74
+pasi,Memory,Original,Women,35-39,0,0
+pasi,Memory,Offspring,Women,35-39,9,8
+pasi,Memory,Gen3,Women,35-39,148,148
+pasi,Memory,Original,Women,40-44,0,0
+pasi,Memory,Offspring,Women,40-44,29,29
+pasi,Memory,Gen3,Women,40-44,258,256
+pasi,Memory,Original,Women,45-49,0,0
+pasi,Memory,Offspring,Women,45-49,114,108
+pasi,Memory,Gen3,Women,45-49,327,325
+pasi,Memory,Original,Women,50-54,0,0
+pasi,Memory,Offspring,Women,50-54,337,306
+pasi,Memory,Gen3,Women,50-54,361,360
+pasi,Memory,Original,Women,55-59,0,0
+pasi,Memory,Offspring,Women,55-59,527,483
+pasi,Memory,Gen3,Women,55-59,296,295
+pasi,Memory,Original,Women,60-64,5,5
+pasi,Memory,Offspring,Women,60-64,636,577
+pasi,Memory,Gen3,Women,60-64,180,178
+pasi,Memory,Original,Women,65-69,47,46
+pasi,Memory,Offspring,Women,65-69,770,690
+pasi,Memory,Gen3,Women,65-69,68,66
+pasi,Memory,Original,Women,70-74,91,85
+pasi,Memory,Offspring,Women,70-74,703,616
+pasi,Memory,Gen3,Women,70-74,13,13
+pasi,Memory,Original,Women,75-79,197,166
+pasi,Memory,Offspring,Women,75-79,619,487
+pasi,Memory,Gen3,Women,75-79,4,4
+pasi,Memory,Original,Women,80-84,537,330
+pasi,Memory,Offspring,Women,80-84,397,310
+pasi,Memory,Gen3,Women,80-84,1,1
+pasi,Memory,Original,Women,85-89,695,386
+pasi,Memory,Offspring,Women,85-89,185,150
+pasi,Memory,Gen3,Women,85-89,1,1
+pasi,Memory,Original,Women,>=90,522,274
+pasi,Memory,Offspring,Women,>=90,66,50
+pasi,Memory,Gen3,Women,>=90,0,0
+pasi,Memory,Original,Men,<30,0,0
+pasi,Memory,Offspring,Men,<30,0,0
+pasi,Memory,Gen3,Men,<30,18,18
+pasi,Memory,Original,Men,30-34,0,0
+pasi,Memory,Offspring,Men,30-34,0,0
+pasi,Memory,Gen3,Men,30-34,59,59
+pasi,Memory,Original,Men,35-39,0,0
+pasi,Memory,Offspring,Men,35-39,6,6
+pasi,Memory,Gen3,Men,35-39,113,113
+pasi,Memory,Original,Men,40-44,0,0
+pasi,Memory,Offspring,Men,40-44,32,32
+pasi,Memory,Gen3,Men,40-44,189,189
+pasi,Memory,Original,Men,45-49,0,0
+pasi,Memory,Offspring,Men,45-49,103,100
+pasi,Memory,Gen3,Men,45-49,315,314
+pasi,Memory,Original,Men,50-54,0,0
+pasi,Memory,Offspring,Men,50-54,242,234
+pasi,Memory,Gen3,Men,50-54,310,308
+pasi,Memory,Original,Men,55-59,0,0
+pasi,Memory,Offspring,Men,55-59,406,376
+pasi,Memory,Gen3,Men,55-59,284,281
+pasi,Memory,Original,Men,60-64,2,2
+pasi,Memory,Offspring,Men,60-64,561,514
+pasi,Memory,Gen3,Men,60-64,179,176
+pasi,Memory,Original,Men,65-69,58,56
+pasi,Memory,Offspring,Men,65-69,628,555
+pasi,Memory,Gen3,Men,65-69,65,59
+pasi,Memory,Original,Men,70-74,123,113
+pasi,Memory,Offspring,Men,70-74,622,565
+pasi,Memory,Gen3,Men,70-74,17,16
+pasi,Memory,Original,Men,75-79,165,132
+pasi,Memory,Offspring,Men,75-79,531,433
+pasi,Memory,Gen3,Men,75-79,4,4
+pasi,Memory,Original,Men,80-84,307,198
+pasi,Memory,Offspring,Men,80-84,327,243
+pasi,Memory,Gen3,Men,80-84,0,0
+pasi,Memory,Original,Men,85-89,336,166
+pasi,Memory,Offspring,Men,85-89,134,109
+pasi,Memory,Gen3,Men,85-89,0,0
+pasi,Memory,Original,Men,>=90,178,94
+pasi,Memory,Offspring,Men,>=90,25,19
+pasi,Memory,Gen3,Men,>=90,0,0
+pasr,Memory,Original,Women,<30,0,0
+pasr,Memory,Offspring,Women,<30,0,0
+pasr,Memory,Gen3,Women,<30,26,26
+pasr,Memory,Original,Women,30-34,0,0
+pasr,Memory,Offspring,Women,30-34,0,0
+pasr,Memory,Gen3,Women,30-34,76,76
+pasr,Memory,Original,Women,35-39,0,0
+pasr,Memory,Offspring,Women,35-39,0,0
+pasr,Memory,Gen3,Women,35-39,154,154
+pasr,Memory,Original,Women,40-44,0,0
+pasr,Memory,Offspring,Women,40-44,6,6
+pasr,Memory,Gen3,Women,40-44,256,255
+pasr,Memory,Original,Women,45-49,0,0
+pasr,Memory,Offspring,Women,45-49,9,9
+pasr,Memory,Gen3,Women,45-49,331,329
+pasr,Memory,Original,Women,50-54,0,0
+pasr,Memory,Offspring,Women,50-54,74,72
+pasr,Memory,Gen3,Women,50-54,364,363
+pasr,Memory,Original,Women,55-59,0,0
+pasr,Memory,Offspring,Women,55-59,196,186
+pasr,Memory,Gen3,Women,55-59,305,304
+pasr,Memory,Original,Women,60-64,0,0
+pasr,Memory,Offspring,Women,60-64,368,352
+pasr,Memory,Gen3,Women,60-64,188,186
+pasr,Memory,Original,Women,65-69,0,0
+pasr,Memory,Offspring,Women,65-69,501,466
+pasr,Memory,Gen3,Women,65-69,69,67
+pasr,Memory,Original,Women,70-74,0,0
+pasr,Memory,Offspring,Women,70-74,460,423
+pasr,Memory,Gen3,Women,70-74,14,14
+pasr,Memory,Original,Women,75-79,0,0
+pasr,Memory,Offspring,Women,75-79,433,366
+pasr,Memory,Gen3,Women,75-79,4,4
+pasr,Memory,Original,Women,80-84,0,0
+pasr,Memory,Offspring,Women,80-84,337,277
+pasr,Memory,Gen3,Women,80-84,1,1
+pasr,Memory,Original,Women,85-89,94,65
+pasr,Memory,Offspring,Women,85-89,172,141
+pasr,Memory,Gen3,Women,85-89,1,1
+pasr,Memory,Original,Women,>=90,198,117
+pasr,Memory,Offspring,Women,>=90,62,48
+pasr,Memory,Gen3,Women,>=90,0,0
+pasr,Memory,Original,Men,<30,0,0
+pasr,Memory,Offspring,Men,<30,0,0
+pasr,Memory,Gen3,Men,<30,19,19
+pasr,Memory,Original,Men,30-34,0,0
+pasr,Memory,Offspring,Men,30-34,0,0
+pasr,Memory,Gen3,Men,30-34,60,60
+pasr,Memory,Original,Men,35-39,0,0
+pasr,Memory,Offspring,Men,35-39,0,0
+pasr,Memory,Gen3,Men,35-39,114,114
+pasr,Memory,Original,Men,40-44,0,0
+pasr,Memory,Offspring,Men,40-44,3,3
+pasr,Memory,Gen3,Men,40-44,193,193
+pasr,Memory,Original,Men,45-49,0,0
+pasr,Memory,Offspring,Men,45-49,17,17
+pasr,Memory,Gen3,Men,45-49,319,318
+pasr,Memory,Original,Men,50-54,0,0
+pasr,Memory,Offspring,Men,50-54,51,50
+pasr,Memory,Gen3,Men,50-54,321,318
+pasr,Memory,Original,Men,55-59,0,0
+pasr,Memory,Offspring,Men,55-59,149,144
+pasr,Memory,Gen3,Men,55-59,292,289
+pasr,Memory,Original,Men,60-64,0,0
+pasr,Memory,Offspring,Men,60-64,293,277
+pasr,Memory,Gen3,Men,60-64,180,177
+pasr,Memory,Original,Men,65-69,0,0
+pasr,Memory,Offspring,Men,65-69,386,359
+pasr,Memory,Gen3,Men,65-69,68,62
+pasr,Memory,Original,Men,70-74,0,0
+pasr,Memory,Offspring,Men,70-74,403,374
+pasr,Memory,Gen3,Men,70-74,17,16
+pasr,Memory,Original,Men,75-79,0,0
+pasr,Memory,Offspring,Men,75-79,372,323
+pasr,Memory,Gen3,Men,75-79,4,4
+pasr,Memory,Original,Men,80-84,0,0
+pasr,Memory,Offspring,Men,80-84,271,209
+pasr,Memory,Gen3,Men,80-84,0,0
+pasr,Memory,Original,Men,85-89,46,31
+pasr,Memory,Offspring,Men,85-89,125,100
+pasr,Memory,Gen3,Men,85-89,0,0
+pasr,Memory,Original,Men,>=90,71,44
+pasr,Memory,Offspring,Men,>=90,21,18
+pasr,Memory,Gen3,Men,>=90,0,0
+trailsa,Psychomotor,Original,Women,<30,0,0
+trailsa,Psychomotor,Offspring,Women,<30,0,0
+trailsa,Psychomotor,Gen3,Women,<30,26,26
+trailsa,Psychomotor,Original,Women,30-34,0,0
+trailsa,Psychomotor,Offspring,Women,30-34,1,1
+trailsa,Psychomotor,Gen3,Women,30-34,74,74
+trailsa,Psychomotor,Original,Women,35-39,0,0
+trailsa,Psychomotor,Offspring,Women,35-39,9,8
+trailsa,Psychomotor,Gen3,Women,35-39,157,157
+trailsa,Psychomotor,Original,Women,40-44,0,0
+trailsa,Psychomotor,Offspring,Women,40-44,29,29
+trailsa,Psychomotor,Gen3,Women,40-44,274,272
+trailsa,Psychomotor,Original,Women,45-49,0,0
+trailsa,Psychomotor,Offspring,Women,45-49,112,107
+trailsa,Psychomotor,Gen3,Women,45-49,365,362
+trailsa,Psychomotor,Original,Women,50-54,0,0
+trailsa,Psychomotor,Offspring,Women,50-54,334,305
+trailsa,Psychomotor,Gen3,Women,50-54,395,393
+trailsa,Psychomotor,Original,Women,55-59,0,0
+trailsa,Psychomotor,Offspring,Women,55-59,525,483
+trailsa,Psychomotor,Gen3,Women,55-59,340,339
+trailsa,Psychomotor,Original,Women,60-64,0,0
+trailsa,Psychomotor,Offspring,Women,60-64,637,578
+trailsa,Psychomotor,Gen3,Women,60-64,209,206
+trailsa,Psychomotor,Original,Women,65-69,0,0
+trailsa,Psychomotor,Offspring,Women,65-69,779,698
+trailsa,Psychomotor,Gen3,Women,65-69,76,74
+trailsa,Psychomotor,Original,Women,70-74,0,0
+trailsa,Psychomotor,Offspring,Women,70-74,703,618
+trailsa,Psychomotor,Gen3,Women,70-74,17,17
+trailsa,Psychomotor,Original,Women,75-79,8,8
+trailsa,Psychomotor,Offspring,Women,75-79,606,483
+trailsa,Psychomotor,Gen3,Women,75-79,4,4
+trailsa,Psychomotor,Original,Women,80-84,280,140
+trailsa,Psychomotor,Offspring,Women,80-84,378,300
+trailsa,Psychomotor,Gen3,Women,80-84,1,1
+trailsa,Psychomotor,Original,Women,85-89,410,200
+trailsa,Psychomotor,Offspring,Women,85-89,180,147
+trailsa,Psychomotor,Gen3,Women,85-89,1,1
+trailsa,Psychomotor,Original,Women,>=90,304,163
+trailsa,Psychomotor,Offspring,Women,>=90,56,41
+trailsa,Psychomotor,Gen3,Women,>=90,0,0
+trailsa,Psychomotor,Original,Men,<30,0,0
+trailsa,Psychomotor,Offspring,Men,<30,0,0
+trailsa,Psychomotor,Gen3,Men,<30,19,19
+trailsa,Psychomotor,Original,Men,30-34,0,0
+trailsa,Psychomotor,Offspring,Men,30-34,0,0
+trailsa,Psychomotor,Gen3,Men,30-34,61,61
+trailsa,Psychomotor,Original,Men,35-39,0,0
+trailsa,Psychomotor,Offspring,Men,35-39,6,6
+trailsa,Psychomotor,Gen3,Men,35-39,120,120
+trailsa,Psychomotor,Original,Men,40-44,0,0
+trailsa,Psychomotor,Offspring,Men,40-44,32,32
+trailsa,Psychomotor,Gen3,Men,40-44,206,206
+trailsa,Psychomotor,Original,Men,45-49,0,0
+trailsa,Psychomotor,Offspring,Men,45-49,102,99
+trailsa,Psychomotor,Gen3,Men,45-49,346,342
+trailsa,Psychomotor,Original,Men,50-54,0,0
+trailsa,Psychomotor,Offspring,Men,50-54,241,234
+trailsa,Psychomotor,Gen3,Men,50-54,367,363
+trailsa,Psychomotor,Original,Men,55-59,0,0
+trailsa,Psychomotor,Offspring,Men,55-59,408,377
+trailsa,Psychomotor,Gen3,Men,55-59,315,309
+trailsa,Psychomotor,Original,Men,60-64,0,0
+trailsa,Psychomotor,Offspring,Men,60-64,550,505
+trailsa,Psychomotor,Gen3,Men,60-64,204,198
+trailsa,Psychomotor,Original,Men,65-69,0,0
+trailsa,Psychomotor,Offspring,Men,65-69,624,558
+trailsa,Psychomotor,Gen3,Men,65-69,76,70
+trailsa,Psychomotor,Original,Men,70-74,0,0
+trailsa,Psychomotor,Offspring,Men,70-74,626,567
+trailsa,Psychomotor,Gen3,Men,70-74,21,19
+trailsa,Psychomotor,Original,Men,75-79,1,1
+trailsa,Psychomotor,Offspring,Men,75-79,543,444
+trailsa,Psychomotor,Gen3,Men,75-79,4,4
+trailsa,Psychomotor,Original,Men,80-84,163,88
+trailsa,Psychomotor,Offspring,Men,80-84,316,236
+trailsa,Psychomotor,Gen3,Men,80-84,0,0
+trailsa,Psychomotor,Original,Men,85-89,247,105
+trailsa,Psychomotor,Offspring,Men,85-89,138,111
+trailsa,Psychomotor,Gen3,Men,85-89,0,0
+trailsa,Psychomotor,Original,Men,>=90,141,71
+trailsa,Psychomotor,Offspring,Men,>=90,27,23
+trailsa,Psychomotor,Gen3,Men,>=90,0,0
+trailsb,Executive Function & Processing,Original,Women,<30,0,0
+trailsb,Executive Function & Processing,Offspring,Women,<30,0,0
+trailsb,Executive Function & Processing,Gen3,Women,<30,26,26
+trailsb,Executive Function & Processing,Original,Women,30-34,0,0
+trailsb,Executive Function & Processing,Offspring,Women,30-34,1,1
+trailsb,Executive Function & Processing,Gen3,Women,30-34,71,71
+trailsb,Executive Function & Processing,Original,Women,35-39,0,0
+trailsb,Executive Function & Processing,Offspring,Women,35-39,9,8
+trailsb,Executive Function & Processing,Gen3,Women,35-39,151,151
+trailsb,Executive Function & Processing,Original,Women,40-44,0,0
+trailsb,Executive Function & Processing,Offspring,Women,40-44,29,29
+trailsb,Executive Function & Processing,Gen3,Women,40-44,268,266
+trailsb,Executive Function & Processing,Original,Women,45-49,0,0
+trailsb,Executive Function & Processing,Offspring,Women,45-49,112,107
+trailsb,Executive Function & Processing,Gen3,Women,45-49,359,356
+trailsb,Executive Function & Processing,Original,Women,50-54,0,0
+trailsb,Executive Function & Processing,Offspring,Women,50-54,331,303
+trailsb,Executive Function & Processing,Gen3,Women,50-54,392,390
+trailsb,Executive Function & Processing,Original,Women,55-59,0,0
+trailsb,Executive Function & Processing,Offspring,Women,55-59,520,477
+trailsb,Executive Function & Processing,Gen3,Women,55-59,339,338
+trailsb,Executive Function & Processing,Original,Women,60-64,0,0
+trailsb,Executive Function & Processing,Offspring,Women,60-64,631,572
+trailsb,Executive Function & Processing,Gen3,Women,60-64,203,200
+trailsb,Executive Function & Processing,Original,Women,65-69,0,0
+trailsb,Executive Function & Processing,Offspring,Women,65-69,768,687
+trailsb,Executive Function & Processing,Gen3,Women,65-69,75,73
+trailsb,Executive Function & Processing,Original,Women,70-74,0,0
+trailsb,Executive Function & Processing,Offspring,Women,70-74,685,605
+trailsb,Executive Function & Processing,Gen3,Women,70-74,17,17
+trailsb,Executive Function & Processing,Original,Women,75-79,8,8
+trailsb,Executive Function & Processing,Offspring,Women,75-79,584,468
+trailsb,Executive Function & Processing,Gen3,Women,75-79,4,4
+trailsb,Executive Function & Processing,Original,Women,80-84,274,139
+trailsb,Executive Function & Processing,Offspring,Women,80-84,354,285
+trailsb,Executive Function & Processing,Gen3,Women,80-84,1,1
+trailsb,Executive Function & Processing,Original,Women,85-89,381,189
+trailsb,Executive Function & Processing,Offspring,Women,85-89,157,130
+trailsb,Executive Function & Processing,Gen3,Women,85-89,1,1
+trailsb,Executive Function & Processing,Original,Women,>=90,256,140
+trailsb,Executive Function & Processing,Offspring,Women,>=90,48,34
+trailsb,Executive Function & Processing,Gen3,Women,>=90,0,0
+trailsb,Executive Function & Processing,Original,Men,<30,0,0
+trailsb,Executive Function & Processing,Offspring,Men,<30,0,0
+trailsb,Executive Function & Processing,Gen3,Men,<30,19,19
+trailsb,Executive Function & Processing,Original,Men,30-34,0,0
+trailsb,Executive Function & Processing,Offspring,Men,30-34,0,0
+trailsb,Executive Function & Processing,Gen3,Men,30-34,60,60
+trailsb,Executive Function & Processing,Original,Men,35-39,0,0
+trailsb,Executive Function & Processing,Offspring,Men,35-39,6,6
+trailsb,Executive Function & Processing,Gen3,Men,35-39,118,118
+trailsb,Executive Function & Processing,Original,Men,40-44,0,0
+trailsb,Executive Function & Processing,Offspring,Men,40-44,32,32
+trailsb,Executive Function & Processing,Gen3,Men,40-44,204,204
+trailsb,Executive Function & Processing,Original,Men,45-49,0,0
+trailsb,Executive Function & Processing,Offspring,Men,45-49,102,99
+trailsb,Executive Function & Processing,Gen3,Men,45-49,342,338
+trailsb,Executive Function & Processing,Original,Men,50-54,0,0
+trailsb,Executive Function & Processing,Offspring,Men,50-54,238,231
+trailsb,Executive Function & Processing,Gen3,Men,50-54,361,357
+trailsb,Executive Function & Processing,Original,Men,55-59,0,0
+trailsb,Executive Function & Processing,Offspring,Men,55-59,401,371
+trailsb,Executive Function & Processing,Gen3,Men,55-59,316,310
+trailsb,Executive Function & Processing,Original,Men,60-64,0,0
+trailsb,Executive Function & Processing,Offspring,Men,60-64,548,504
+trailsb,Executive Function & Processing,Gen3,Men,60-64,200,195
+trailsb,Executive Function & Processing,Original,Men,65-69,0,0
+trailsb,Executive Function & Processing,Offspring,Men,65-69,612,550
+trailsb,Executive Function & Processing,Gen3,Men,65-69,74,68
+trailsb,Executive Function & Processing,Original,Men,70-74,0,0
+trailsb,Executive Function & Processing,Offspring,Men,70-74,615,557
+trailsb,Executive Function & Processing,Gen3,Men,70-74,20,18
+trailsb,Executive Function & Processing,Original,Men,75-79,1,1
+trailsb,Executive Function & Processing,Offspring,Men,75-79,522,428
+trailsb,Executive Function & Processing,Gen3,Men,75-79,4,4
+trailsb,Executive Function & Processing,Original,Men,80-84,158,86
+trailsb,Executive Function & Processing,Offspring,Men,80-84,301,227
+trailsb,Executive Function & Processing,Gen3,Men,80-84,0,0
+trailsb,Executive Function & Processing,Original,Men,85-89,233,103
+trailsb,Executive Function & Processing,Offspring,Men,85-89,120,99
+trailsb,Executive Function & Processing,Gen3,Men,85-89,0,0
+trailsb,Executive Function & Processing,Original,Men,>=90,134,68
+trailsb,Executive Function & Processing,Offspring,Men,>=90,24,21
+trailsb,Executive Function & Processing,Gen3,Men,>=90,0,0
+vrd,Visual Learning,Original,Women,<30,0,0
+vrd,Visual Learning,Offspring,Women,<30,0,0
+vrd,Visual Learning,Gen3,Women,<30,25,25
+vrd,Visual Learning,Original,Women,30-34,0,0
+vrd,Visual Learning,Offspring,Women,30-34,1,1
+vrd,Visual Learning,Gen3,Women,30-34,76,76
+vrd,Visual Learning,Original,Women,35-39,0,0
+vrd,Visual Learning,Offspring,Women,35-39,9,8
+vrd,Visual Learning,Gen3,Women,35-39,157,157
+vrd,Visual Learning,Original,Women,40-44,0,0
+vrd,Visual Learning,Offspring,Women,40-44,29,29
+vrd,Visual Learning,Gen3,Women,40-44,273,271
+vrd,Visual Learning,Original,Women,45-49,0,0
+vrd,Visual Learning,Offspring,Women,45-49,114,108
+vrd,Visual Learning,Gen3,Women,45-49,370,367
+vrd,Visual Learning,Original,Women,50-54,0,0
+vrd,Visual Learning,Offspring,Women,50-54,337,306
+vrd,Visual Learning,Gen3,Women,50-54,398,396
+vrd,Visual Learning,Original,Women,55-59,0,0
+vrd,Visual Learning,Offspring,Women,55-59,531,487
+vrd,Visual Learning,Gen3,Women,55-59,339,338
+vrd,Visual Learning,Original,Women,60-64,6,6
+vrd,Visual Learning,Offspring,Women,60-64,643,582
+vrd,Visual Learning,Gen3,Women,60-64,209,206
+vrd,Visual Learning,Original,Women,65-69,47,46
+vrd,Visual Learning,Offspring,Women,65-69,786,706
+vrd,Visual Learning,Gen3,Women,65-69,76,74
+vrd,Visual Learning,Original,Women,70-74,92,86
+vrd,Visual Learning,Offspring,Women,70-74,714,628
+vrd,Visual Learning,Gen3,Women,70-74,17,17
+vrd,Visual Learning,Original,Women,75-79,184,157
+vrd,Visual Learning,Offspring,Women,75-79,626,496
+vrd,Visual Learning,Gen3,Women,75-79,4,4
+vrd,Visual Learning,Original,Women,80-84,524,325
+vrd,Visual Learning,Offspring,Women,80-84,405,317
+vrd,Visual Learning,Gen3,Women,80-84,1,1
+vrd,Visual Learning,Original,Women,85-89,669,375
+vrd,Visual Learning,Offspring,Women,85-89,188,151
+vrd,Visual Learning,Gen3,Women,85-89,1,1
+vrd,Visual Learning,Original,Women,>=90,480,259
+vrd,Visual Learning,Offspring,Women,>=90,61,46
+vrd,Visual Learning,Gen3,Women,>=90,0,0
+vrd,Visual Learning,Original,Men,<30,0,0
+vrd,Visual Learning,Offspring,Men,<30,0,0
+vrd,Visual Learning,Gen3,Men,<30,19,19
+vrd,Visual Learning,Original,Men,30-34,0,0
+vrd,Visual Learning,Offspring,Men,30-34,0,0
+vrd,Visual Learning,Gen3,Men,30-34,61,61
+vrd,Visual Learning,Original,Men,35-39,0,0
+vrd,Visual Learning,Offspring,Men,35-39,6,6
+vrd,Visual Learning,Gen3,Men,35-39,120,120
+vrd,Visual Learning,Original,Men,40-44,0,0
+vrd,Visual Learning,Offspring,Men,40-44,32,32
+vrd,Visual Learning,Gen3,Men,40-44,204,204
+vrd,Visual Learning,Original,Men,45-49,0,0
+vrd,Visual Learning,Offspring,Men,45-49,104,101
+vrd,Visual Learning,Gen3,Men,45-49,347,343
+vrd,Visual Learning,Original,Men,50-54,0,0
+vrd,Visual Learning,Offspring,Men,50-54,241,233
+vrd,Visual Learning,Gen3,Men,50-54,364,360
+vrd,Visual Learning,Original,Men,55-59,0,0
+vrd,Visual Learning,Offspring,Men,55-59,409,377
+vrd,Visual Learning,Gen3,Men,55-59,321,315
+vrd,Visual Learning,Original,Men,60-64,2,2
+vrd,Visual Learning,Offspring,Men,60-64,568,519
+vrd,Visual Learning,Gen3,Men,60-64,202,196
+vrd,Visual Learning,Original,Men,65-69,60,58
+vrd,Visual Learning,Offspring,Men,65-69,640,568
+vrd,Visual Learning,Gen3,Men,65-69,77,70
+vrd,Visual Learning,Original,Men,70-74,124,115
+vrd,Visual Learning,Offspring,Men,70-74,643,579
+vrd,Visual Learning,Gen3,Men,70-74,22,20
+vrd,Visual Learning,Original,Men,75-79,165,133
+vrd,Visual Learning,Offspring,Men,75-79,549,447
+vrd,Visual Learning,Gen3,Men,75-79,4,4
+vrd,Visual Learning,Original,Men,80-84,318,203
+vrd,Visual Learning,Offspring,Men,80-84,329,245
+vrd,Visual Learning,Gen3,Men,80-84,0,0
+vrd,Visual Learning,Original,Men,85-89,336,163
+vrd,Visual Learning,Offspring,Men,85-89,137,108
+vrd,Visual Learning,Gen3,Men,85-89,0,0
+vrd,Visual Learning,Original,Men,>=90,174,94
+vrd,Visual Learning,Offspring,Men,>=90,29,24
+vrd,Visual Learning,Gen3,Men,>=90,0,0
+vri,Visual Learning,Original,Women,<30,0,0
+vri,Visual Learning,Offspring,Women,<30,0,0
+vri,Visual Learning,Gen3,Women,<30,26,26
+vri,Visual Learning,Original,Women,30-34,0,0
+vri,Visual Learning,Offspring,Women,30-34,1,1
+vri,Visual Learning,Gen3,Women,30-34,75,75
+vri,Visual Learning,Original,Women,35-39,0,0
+vri,Visual Learning,Offspring,Women,35-39,9,8
+vri,Visual Learning,Gen3,Women,35-39,156,156
+vri,Visual Learning,Original,Women,40-44,0,0
+vri,Visual Learning,Offspring,Women,40-44,29,29
+vri,Visual Learning,Gen3,Women,40-44,272,270
+vri,Visual Learning,Original,Women,45-49,0,0
+vri,Visual Learning,Offspring,Women,45-49,114,108
+vri,Visual Learning,Gen3,Women,45-49,367,364
+vri,Visual Learning,Original,Women,50-54,0,0
+vri,Visual Learning,Offspring,Women,50-54,338,307
+vri,Visual Learning,Gen3,Women,50-54,399,397
+vri,Visual Learning,Original,Women,55-59,0,0
+vri,Visual Learning,Offspring,Women,55-59,531,487
+vri,Visual Learning,Gen3,Women,55-59,340,339
+vri,Visual Learning,Original,Women,60-64,6,6
+vri,Visual Learning,Offspring,Women,60-64,643,582
+vri,Visual Learning,Gen3,Women,60-64,208,205
+vri,Visual Learning,Original,Women,65-69,47,46
+vri,Visual Learning,Offspring,Women,65-69,788,708
+vri,Visual Learning,Gen3,Women,65-69,76,74
+vri,Visual Learning,Original,Women,70-74,94,88
+vri,Visual Learning,Offspring,Women,70-74,718,629
+vri,Visual Learning,Gen3,Women,70-74,17,17
+vri,Visual Learning,Original,Women,75-79,185,158
+vri,Visual Learning,Offspring,Women,75-79,631,500
+vri,Visual Learning,Gen3,Women,75-79,4,4
+vri,Visual Learning,Original,Women,80-84,526,326
+vri,Visual Learning,Offspring,Women,80-84,407,317
+vri,Visual Learning,Gen3,Women,80-84,1,1
+vri,Visual Learning,Original,Women,85-89,679,378
+vri,Visual Learning,Offspring,Women,85-89,194,157
+vri,Visual Learning,Gen3,Women,85-89,1,1
+vri,Visual Learning,Original,Women,>=90,493,263
+vri,Visual Learning,Offspring,Women,>=90,65,49
+vri,Visual Learning,Gen3,Women,>=90,0,0
+vri,Visual Learning,Original,Men,<30,0,0
+vri,Visual Learning,Offspring,Men,<30,0,0
+vri,Visual Learning,Gen3,Men,<30,19,19
+vri,Visual Learning,Original,Men,30-34,0,0
+vri,Visual Learning,Offspring,Men,30-34,0,0
+vri,Visual Learning,Gen3,Men,30-34,61,61
+vri,Visual Learning,Original,Men,35-39,0,0
+vri,Visual Learning,Offspring,Men,35-39,6,6
+vri,Visual Learning,Gen3,Men,35-39,120,120
+vri,Visual Learning,Original,Men,40-44,0,0
+vri,Visual Learning,Offspring,Men,40-44,32,32
+vri,Visual Learning,Gen3,Men,40-44,205,205
+vri,Visual Learning,Original,Men,45-49,0,0
+vri,Visual Learning,Offspring,Men,45-49,104,101
+vri,Visual Learning,Gen3,Men,45-49,349,345
+vri,Visual Learning,Original,Men,50-54,0,0
+vri,Visual Learning,Offspring,Men,50-54,242,234
+vri,Visual Learning,Gen3,Men,50-54,363,359
+vri,Visual Learning,Original,Men,55-59,0,0
+vri,Visual Learning,Offspring,Men,55-59,411,379
+vri,Visual Learning,Gen3,Men,55-59,321,315
+vri,Visual Learning,Original,Men,60-64,2,2
+vri,Visual Learning,Offspring,Men,60-64,568,519
+vri,Visual Learning,Gen3,Men,60-64,204,198
+vri,Visual Learning,Original,Men,65-69,60,58
+vri,Visual Learning,Offspring,Men,65-69,639,567
+vri,Visual Learning,Gen3,Men,65-69,77,70
+vri,Visual Learning,Original,Men,70-74,124,115
+vri,Visual Learning,Offspring,Men,70-74,645,580
+vri,Visual Learning,Gen3,Men,70-74,22,20
+vri,Visual Learning,Original,Men,75-79,168,136
+vri,Visual Learning,Offspring,Men,75-79,556,451
+vri,Visual Learning,Gen3,Men,75-79,3,3
+vri,Visual Learning,Original,Men,80-84,324,205
+vri,Visual Learning,Offspring,Men,80-84,335,248
+vri,Visual Learning,Gen3,Men,80-84,0,0
+vri,Visual Learning,Original,Men,85-89,342,168
+vri,Visual Learning,Offspring,Men,85-89,140,111
+vri,Visual Learning,Gen3,Men,85-89,0,0
+vri,Visual Learning,Original,Men,>=90,179,95
+vri,Visual Learning,Offspring,Men,>=90,30,25
+vri,Visual Learning,Gen3,Men,>=90,0,0
+vrr,Visual Learning,Original,Women,<30,0,0
+vrr,Visual Learning,Offspring,Women,<30,0,0
+vrr,Visual Learning,Gen3,Women,<30,25,25
+vrr,Visual Learning,Original,Women,30-34,0,0
+vrr,Visual Learning,Offspring,Women,30-34,1,1
+vrr,Visual Learning,Gen3,Women,30-34,76,76
+vrr,Visual Learning,Original,Women,35-39,0,0
+vrr,Visual Learning,Offspring,Women,35-39,9,8
+vrr,Visual Learning,Gen3,Women,35-39,153,153
+vrr,Visual Learning,Original,Women,40-44,0,0
+vrr,Visual Learning,Offspring,Women,40-44,29,29
+vrr,Visual Learning,Gen3,Women,40-44,263,261
+vrr,Visual Learning,Original,Women,45-49,0,0
+vrr,Visual Learning,Offspring,Women,45-49,114,108
+vrr,Visual Learning,Gen3,Women,45-49,345,342
+vrr,Visual Learning,Original,Women,50-54,0,0
+vrr,Visual Learning,Offspring,Women,50-54,337,306
+vrr,Visual Learning,Gen3,Women,50-54,375,374
+vrr,Visual Learning,Original,Women,55-59,0,0
+vrr,Visual Learning,Offspring,Women,55-59,528,484
+vrr,Visual Learning,Gen3,Women,55-59,308,307
+vrr,Visual Learning,Original,Women,60-64,6,6
+vrr,Visual Learning,Offspring,Women,60-64,640,581
+vrr,Visual Learning,Gen3,Women,60-64,192,190
+vrr,Visual Learning,Original,Women,65-69,46,45
+vrr,Visual Learning,Offspring,Women,65-69,777,697
+vrr,Visual Learning,Gen3,Women,65-69,69,67
+vrr,Visual Learning,Original,Women,70-74,91,85
+vrr,Visual Learning,Offspring,Women,70-74,706,621
+vrr,Visual Learning,Gen3,Women,70-74,14,14
+vrr,Visual Learning,Original,Women,75-79,179,153
+vrr,Visual Learning,Offspring,Women,75-79,627,496
+vrr,Visual Learning,Gen3,Women,75-79,4,4
+vrr,Visual Learning,Original,Women,80-84,516,318
+vrr,Visual Learning,Offspring,Women,80-84,401,315
+vrr,Visual Learning,Gen3,Women,80-84,1,1
+vrr,Visual Learning,Original,Women,85-89,658,370
+vrr,Visual Learning,Offspring,Women,85-89,185,149
+vrr,Visual Learning,Gen3,Women,85-89,1,1
+vrr,Visual Learning,Original,Women,>=90,467,250
+vrr,Visual Learning,Offspring,Women,>=90,61,46
+vrr,Visual Learning,Gen3,Women,>=90,0,0
+vrr,Visual Learning,Original,Men,<30,0,0
+vrr,Visual Learning,Offspring,Men,<30,0,0
+vrr,Visual Learning,Gen3,Men,<30,19,19
+vrr,Visual Learning,Original,Men,30-34,0,0
+vrr,Visual Learning,Offspring,Men,30-34,0,0
+vrr,Visual Learning,Gen3,Men,30-34,60,60
+vrr,Visual Learning,Original,Men,35-39,0,0
+vrr,Visual Learning,Offspring,Men,35-39,6,6
+vrr,Visual Learning,Gen3,Men,35-39,115,115
+vrr,Visual Learning,Original,Men,40-44,0,0
+vrr,Visual Learning,Offspring,Men,40-44,32,32
+vrr,Visual Learning,Gen3,Men,40-44,195,195
+vrr,Visual Learning,Original,Men,45-49,0,0
+vrr,Visual Learning,Offspring,Men,45-49,104,101
+vrr,Visual Learning,Gen3,Men,45-49,323,322
+vrr,Visual Learning,Original,Men,50-54,0,0
+vrr,Visual Learning,Offspring,Men,50-54,242,234
+vrr,Visual Learning,Gen3,Men,50-54,322,319
+vrr,Visual Learning,Original,Men,55-59,0,0
+vrr,Visual Learning,Offspring,Men,55-59,409,377
+vrr,Visual Learning,Gen3,Men,55-59,295,291
+vrr,Visual Learning,Original,Men,60-64,2,2
+vrr,Visual Learning,Offspring,Men,60-64,562,515
+vrr,Visual Learning,Gen3,Men,60-64,181,177
+vrr,Visual Learning,Original,Men,65-69,59,57
+vrr,Visual Learning,Offspring,Men,65-69,634,562
+vrr,Visual Learning,Gen3,Men,65-69,69,63
+vrr,Visual Learning,Original,Men,70-74,123,114
+vrr,Visual Learning,Offspring,Men,70-74,635,571
+vrr,Visual Learning,Gen3,Men,70-74,17,16
+vrr,Visual Learning,Original,Men,75-79,164,133
+vrr,Visual Learning,Offspring,Men,75-79,542,440
+vrr,Visual Learning,Gen3,Men,75-79,4,4
+vrr,Visual Learning,Original,Men,80-84,309,198
+vrr,Visual Learning,Offspring,Men,80-84,325,243
+vrr,Visual Learning,Gen3,Men,80-84,0,0
+vrr,Visual Learning,Original,Men,85-89,331,160
+vrr,Visual Learning,Offspring,Men,85-89,140,111
+vrr,Visual Learning,Gen3,Men,85-89,0,0
+vrr,Visual Learning,Original,Men,>=90,173,92
+vrr,Visual Learning,Offspring,Men,>=90,29,24
+vrr,Visual Learning,Gen3,Men,>=90,0,0
