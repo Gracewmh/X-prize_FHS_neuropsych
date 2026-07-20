@@ -68,7 +68,7 @@ fit_practice_model <- function(data_x, class, practice_term = "factor") {
     msgs <- character(0)
     fit  <- tryCatch(
       withCallingHandlers(
-        lme4::lmer(f, data = data_x, control = .pe_control),
+        lme4::lmer(f, data = data_x, REML = FALSE, control = .pe_control),
         warning = function(w) { msgs <<- c(msgs, conditionMessage(w)); invokeRestart("muffleWarning") }
       ),
       error = function(e) { msgs <<- c(msgs, paste("ERROR:", conditionMessage(e))); NULL }
