@@ -1226,7 +1226,6 @@ write_one_pooled_test_sheet <- function(
 
   openxlsx::setColWidths(wb, sheet_x, cols = 1:25, widths = 11)
   openxlsx::setColWidths(wb, sheet_x, cols = c(1, 14), widths = 8)
-  openxlsx::setColWidths(wb, sheet_x, cols = c(3, 16), widths = 4)
 
   invisible(wb)
 }
