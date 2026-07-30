@@ -10,6 +10,15 @@ The work is part of the X-prize project on cognitive aging. This project examine
 
 For each cognitive test, models are fitted separately for women and men. The pipeline produces estimates of cognitive performance by age, expected change over follow-up, percentage decline, and the frequency of apparent "spontaneous reversal" of cognitive aging.
 
+## STANDARD FOLLOW-UP HORIZONS
+
+All expected-change (Table 2&3) and spontaneous-reversal (Table 4) estimates are reported over 5, 10, 15, and 20 years of follow-up, and only those four horizons. These are the standard X-prize horizons, fixed for every cohort and every analysis team. This is a reporting standard rather than a property of any one dataset: it applies even when a cohort's actual follow-up waves fall on other intervals, and even when a cohort's observed follow-up spans only a few years and does not reach
+out to 5, 10, 15, or 20 years. A cohort's native follow-up intervals are not substituted for the standard horizons, so that results remain comparable across cohorts.
+
+The mechanics are the same in every cohort. The longitudinal model is fitted on that cohort's own observed visits, so no observed data is discarded, and the 5/10/15/20-year figures are model-based predictions read off the fitted model at the four standard horizons. Where a horizon is longer than a cohort's observed follow-up, the corresponding figures are extrapolations beyond the observed data and are flagged as a limitation.
+
+In this pipeline the horizons are set in two places, both kept at c(5, 10, 15, 20): change_years in code/neuropsych_pooled3cohorts_02_output_formated_tables.Rmd (Table 2 and Table 3) and horizons in code/R/spontaneous_reversal_functions.R (Table 4 reversal thresholds).
+
 ## COGNITIVE TESTS
 
 The analysis includes tests from several cognitive domains:
@@ -45,7 +54,8 @@ This version uses the crude 2-visit+ sample. For each cognitive test, the analys
 
 Spontaneous reversal is defined by comparing each participant's observed change from baseline to first follow-up with a model-based aging threshold.
 
-The thresholds represent the expected aging-related change over 5-, 10-, 15-, or 20-year horizons. A participant is classified as showing apparent reversal at a given horizon when the observed change is more favorable than the corresponding model-based threshold.
+The thresholds represent the expected aging-related change over 5-, 10-, 15-, or 20-year horizons. A participant is classified as showing apparent reversal at a given horizon when the observed change is more favorable than the corresponding model-based threshold. These are the standard X-prize horizons (see "STANDARD FOLLOW-UP HORIZONS" at
+the top of this file). Report reversal at 5, 10, 15, and 20 years for every cohort, even when the cohort's actual follow-up waves fall on other intervals; horizons longer than the observed follow-up are extrapolations and should be noted as a limitation.
 
 Table 4 analyses are restricted to participants with baseline ages from 50 to 90 years.
 

@@ -56,6 +56,13 @@ predict_fixed <- function(model_x, newdata) {
 compute_model_change_class2 <- function(model_x, unique_baseline_ages) {
 
   # Fixed-effect Class 2 contrast from reference age A-h to index age A.
+  # Standard X-prize spontaneous-reversal horizons: report 5, 10, 15, and 20
+  # years only, for every cohort and every team, even when a cohort's actual
+  # follow-up waves fall on other intervals, including cohorts with only a few
+  # years of observed follow-up. The model is fit on the observed visits; these
+  # are model-based predictions read off that fit, and horizons longer than the
+  # observed follow-up are extrapolations to flag as a limitation. Keep at
+  # c(5, 10, 15, 20); the Class 1 counterpart below must match.
   horizons <- c(5, 10, 15, 20)
 
   # Evaluate model changes at participants' exact baseline ages crossed with each target horizon.
@@ -101,6 +108,9 @@ compute_model_change_class2 <- function(model_x, unique_baseline_ages) {
 # Fixed-effect Class 1 contrast from reference age A-h to index age A:
 # Pred(age = A) - Pred(age = A-h).
 compute_model_change_class1 <- function(model_x, unique_baseline_ages) {
+  # Standard X-prize horizons; must match the Class 2 definition above (see the
+  # note there). Report 5, 10, 15, and 20 years only, for every cohort/team,
+  # regardless of a cohort's native follow-up intervals.
   horizons <- c(5, 10, 15, 20)
   grid <- expand_grid(
     baseline_age_exact = unique_baseline_ages,

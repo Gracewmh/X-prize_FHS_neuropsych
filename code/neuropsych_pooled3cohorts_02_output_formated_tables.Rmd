@@ -110,6 +110,13 @@ index_ages_table2 <- seq(
   by = 5
 )
 
+# Standard X-prize follow-up horizons for Table 2 (expected change) and Table 3
+# (percentage decline). Report these four horizons only, for every cohort and
+# every team, even when a cohort's actual follow-up waves fall on other intervals,
+# including cohorts with only a few years of observed follow-up. The model is fit
+# on the observed visits; these are model-based predictions read off that fit.
+# Horizons longer than a cohort's observed follow-up are extrapolations and must
+# be flagged as a limitation. Keep this at c(5, 10, 15, 20); do not localize per cohort.
 change_years <- c(
   5,
   10,
